@@ -17,22 +17,16 @@
  */
 
 /**
- * External dependencies
- */
-import { useClickAway, useKey } from 'react-use';
-
-/**
  * WordPress dependencies
  */
-import { useCallback, useRef, useState } from '@wordpress/element';
-import { ESCAPE, TAB } from '@wordpress/keycodes';
+import { useCallback, useRef } from '@wordpress/element';
 
 /**
  * Internal dependencies
  */
 import Data from 'googlesitekit-data';
 import DateRangeIcon from '../../svg/date-range.svg';
-import Menu from './Menu';
+import Menu from './MenuV2';
 import { getAvailableDateRanges } from '../util/date-range';
 import { CORE_USER } from '../googlesitekit/datastore/user/constants';
 import Button from './Button';
@@ -44,21 +38,15 @@ function DateRangeSelector() {
 	const dateRange = useSelect( ( select ) => select( CORE_USER ).getDateRange() );
 	const { setDateRange } = useDispatch( CORE_USER );
 
-	const [ menuOpen, setMenuOpen ] = useState( false );
 	const menuWrapperRef = useRef();
-
-	useClickAway( menuWrapperRef, () => setMenuOpen( false ) );
-	useKey( ESCAPE, () => setMenuOpen( false ) );
-	// this loses focus...
-	useKey( TAB, () => setMenuOpen( false ) );
+	const menuRef = useRef();
 
 	const handleMenu = useCallback( () => {
-		setMenuOpen( ! menuOpen );
-	}, [ menuOpen ] );
+		menuRef.current.openMenu();
+	}, [ ] );
 
 	const handleMenuItemSelect = useCallback( ( index ) => {
 		setDateRange( Object.values( ranges )[ index ].slug );
-		setMenuOpen( false );
 	}, [ ranges, setDateRange ] );
 
 	const currentDateRangeLabel = ranges[ dateRange ]?.label;
@@ -72,13 +60,14 @@ function DateRangeSelector() {
 				onClick={ handleMenu }
 				icon={ <DateRangeIcon width="18" height="20" /> }
 				aria-haspopup="menu"
-				aria-expanded={ menuOpen }
+				// TODO - another way to style button!
+				// aria-expanded={ menuOpen }
 				aria-controls="date-range-selector-menu"
 			>
 				{ currentDateRangeLabel }
 			</Button>
 			<Menu
-				menuOpen={ menuOpen }
+				ref={ menuRef }
 				menuItems={ menuItems }
 				onSelected={ handleMenuItemSelect }
 				id="date-range-selector-menu"
