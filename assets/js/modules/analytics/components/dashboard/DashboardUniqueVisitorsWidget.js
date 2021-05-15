@@ -71,6 +71,8 @@ function DashboardUniqueVisitorsWidget( { WidgetReportZero, WidgetReportError } 
 		[ args ]
 	);
 
+	global.console.log( loading, error );
+
 	if ( loading ) {
 		return <PreviewBlock width="100%" height="202px" />;
 	}

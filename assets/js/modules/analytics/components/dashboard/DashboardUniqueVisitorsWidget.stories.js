@@ -30,55 +30,92 @@ import DashboardUniqueVisitorsWidget, { selectSparklineArgs, selectReportArgs } 
 const currentEntityURL = 'https://www.example.com/example-page/';
 const WidgetWithComponentProps = withWidgetComponentProps( 'widget-slug' )( DashboardUniqueVisitorsWidget );
 
-const Template = ( { setupRegistry, ...args } ) => (
-	<WithRegistrySetup func={ setupRegistry }>
-		<WidgetWithComponentProps { ...args } />
-	</WithRegistrySetup>
-);
+const VARIANT_READY = 'Ready';
+const VARIANT_LOADING = 'Loading';
+const VARIANT_DATA_UNAVAILABLE = 'Data Unavailable';
+const VARIANT_ERROR = 'Error';
+
+function Template( { setupRegistry, variant, ...args } ) {
+	const setup = ( registry ) => {
+		const options = selectReportArgs( registry.select );
+
+		global.console.log( variant );
+
+		switch ( variant ) {
+			case VARIANT_READY: {
+				const sparkOptions = selectSparklineArgs( registry.select );
+				provideAnalyticsMockReport( registry, options );
+				provideAnalyticsMockReport( registry, sparkOptions );
+				registry.dispatch( STORE_NAME ).clearError( 'getReport', [ options ] );
+				registry.dispatch( STORE_NAME ).finishResolution( 'getReport', [ options ] );
+				registry.dispatch( STORE_NAME ).finishResolution( 'getReport', [ sparkOptions ] );
+				break;
+			}
+			case VARIANT_LOADING: {
+				const sparkOptions = selectSparklineArgs( registry.select );
+				provideAnalyticsMockReport( registry, options );
+				provideAnalyticsMockReport( registry, sparkOptions );
+				registry.dispatch( STORE_NAME ).clearError( 'getReport', [ options ] );
+				registry.dispatch( STORE_NAME ).startResolution( 'getReport', [ options ] );
+				registry.dispatch( STORE_NAME ).startResolution( 'getReport', [ sparkOptions ] );
+				break;
+			}
+			case VARIANT_DATA_UNAVAILABLE: {
+				registry.dispatch( STORE_NAME ).clearError( 'getReport', [ options ] );
+				registry.dispatch( STORE_NAME ).receiveGetReport( [], { options } );
+				registry.dispatch( STORE_NAME ).finishResolution( 'getReport', [ options ] );
+				break;
+			}
+			case VARIANT_ERROR: {
+				const error = {
+					code: 'test_error',
+					message: 'Error message.',
+					data: {},
+				};
+				registry.dispatch( STORE_NAME ).receiveError( error, 'getReport', [ options ] );
+				// registry.dispatch( STORE_NAME ).receiveGetReport( {}, { options } );
+				registry.dispatch( STORE_NAME ).finishResolution( 'getReport', [ options ] );
+				break;
+			}
+			default:
+				setupRegistry();
+				break;
+		}
+	};
+
+	return (
+		<WithRegistrySetup func={ setup }>
+			<WidgetWithComponentProps { ...args } />
+		</WithRegistrySetup>
+	);
+}
 
 export const Ready = Template.bind( {} );
 Ready.storyName = 'Ready';
 Ready.args = {
-	setupRegistry: ( registry ) => {
-		provideAnalyticsMockReport( registry, selectReportArgs( registry.select ) );
-		provideAnalyticsMockReport( registry, selectSparklineArgs( registry.select ) );
-	},
+	variant: VARIANT_READY,
 };
 
-export const Loading = Template.bind( {} );
-Loading.storyName = 'Loading';
-Loading.args = {
-	setupRegistry: ( registry ) => {
-		provideAnalyticsMockReport( registry, selectReportArgs( registry.select ) );
-		provideAnalyticsMockReport( registry, selectSparklineArgs( registry.select ) );
-		registry.dispatch( STORE_NAME ).startResolution( 'getReport', [ selectReportArgs( registry.select ) ] );
-		registry.dispatch( STORE_NAME ).startResolution( 'getReport', [ selectSparklineArgs( registry.select ) ] );
-	},
-};
+// export const Loading = Template.bind( {} );
+// Loading.storyName = 'Loading';
+// Loading.args = {
+// 	setupRegistry: ( registry ) => {
+// 	},
+// };
 
-export const DataUnavailable = Template.bind( {} );
-DataUnavailable.storyName = 'Data Unavailable';
-DataUnavailable.args = {
-	setupRegistry: ( registry ) => {
-		const options = selectReportArgs( registry.select );
-		registry.dispatch( STORE_NAME ).receiveGetReport( [], { options } );
-	},
-};
+// export const DataUnavailable = Template.bind( {} );
+// DataUnavailable.storyName = 'Data Unavailable';
+// DataUnavailable.args = {
+// 	setupRegistry: ( registry ) => {
+// 	},
+// };
 
-export const Error = Template.bind( {} );
-Error.storyName = 'Error';
-Error.args = {
-	setupRegistry: ( registry ) => {
-		const error = {
-			code: 'test_error',
-			message: 'Error message.',
-			data: {},
-		};
-		const options = selectReportArgs( registry.select );
-		registry.dispatch( STORE_NAME ).receiveError( error, 'getReport', [ options ] );
-		registry.dispatch( STORE_NAME ).finishResolution( 'getReport', [ options ] );
-	},
-};
+// export const Error = Template.bind( {} );
+// Error.storyName = 'Error';
+// Error.args = {
+// 	setupRegistry: ( registry ) => {
+// 	},
+// };
 
 export const LoadedEntityURL = Template.bind( {} );
 LoadedEntityURL.storyName = 'Ready with entity URL set';
@@ -133,6 +170,19 @@ ErrorEntityURL.args = {
 
 export default {
 	title: 'Modules/Analytics/Widgets/DashboardUniqueVisitorsWidget',
+	argTypes: {
+		variant: {
+			control: {
+				type: 'radio',
+			},
+			options: [
+				VARIANT_READY,
+				VARIANT_LOADING,
+				VARIANT_DATA_UNAVAILABLE,
+				VARIANT_ERROR,
+			],
+		},
+	},
 	decorators: [
 		( Story ) => (
 			<div className="googlesitekit-widget">
@@ -150,6 +200,8 @@ export default {
 					connected: true,
 					slug: 'analytics',
 				} ] );
+
+				registry.dispatch( STORE_NAME ).receiveGetSettings( {} );
 			};
 
 			return (

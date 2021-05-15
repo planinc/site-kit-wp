@@ -23,5 +23,6 @@ module.exports = {
 	],
 	addons: [
 		'@storybook/addon-viewport',
+		'@storybook/addon-essentials',
 	],
 };
