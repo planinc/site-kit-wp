@@ -45,6 +45,11 @@ import {
 } from '../googlesitekit/constants';
 import { CORE_WIDGETS } from '../googlesitekit/widgets/datastore/constants';
 import {
+	CORE_UI,
+	UI_IS_SCROLLING,
+	UI_CONTEXT_HASH,
+} from '../googlesitekit/datastore/ui/constants';
+import {
 	CONTEXT_ENTITY_DASHBOARD_TRAFFIC,
 	CONTEXT_ENTITY_DASHBOARD_CONTENT,
 	CONTEXT_ENTITY_DASHBOARD_SPEED,
@@ -59,7 +64,8 @@ import useDashboardType, {
 } from '../hooks/useDashboardType';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { getContextScrollTop } from '../util/scroll';
-const { useSelect } = Data;
+import { useScrollWindowTo } from '../hooks/useScrollWindowTo';
+const { useSelect, useDispatch } = Data;
 
 export default function DashboardNavigation() {
 	const dashboardType = useDashboardType();
@@ -102,20 +108,24 @@ export default function DashboardNavigation() {
 		global.location.hash.substring( 1 )
 	);
 
+	const scrollWindowTo = useScrollWindowTo();
+	const isScrolling = useSelect( ( select ) =>
+		select( CORE_UI ).getValue( UI_IS_SCROLLING )
+	);
+	const { setValue } = useDispatch( CORE_UI );
+
 	const handleSelect = useCallback(
 		( { target } ) => {
 			const chip = target.closest( '.mdc-chip' );
 			const chipID = chip?.dataset?.contextId; // eslint-disable-line sitekit/acronym-case
 
-			global.scrollTo( {
-				top:
-					chipID !== ANCHOR_ID_TRAFFIC
-						? getContextScrollTop( `#${ chipID }`, breakpoint )
-						: 0,
-				behavior: 'smooth',
-			} );
+			scrollWindowTo(
+				chipID !== ANCHOR_ID_TRAFFIC
+					? getContextScrollTop( `#${ chipID }`, breakpoint )
+					: 0
+			);
 		},
-		[ breakpoint ]
+		[ breakpoint, scrollWindowTo ]
 	);
 
 	useMount( () => {
@@ -125,17 +135,19 @@ export default function DashboardNavigation() {
 		}
 
 		setTimeout( () => {
-			global.scrollTo( {
-				top:
-					hash.substring( 1 ) !== ANCHOR_ID_TRAFFIC
-						? getContextScrollTop( hash, breakpoint )
-						: 0,
-				behavior: 'smooth',
-			} );
+			scrollWindowTo(
+				hash.substring( 1 ) !== ANCHOR_ID_TRAFFIC
+					? getContextScrollTop( hash, breakpoint )
+					: 0
+			);
 		}, 25 );
 	} );
 
 	useEffect( () => {
+		if ( isScrolling ) {
+			return;
+		}
+
 		const onScroll = () => {
 			const entityHeader = document
 				.querySelector( '.googlesitekit-entity-header' )
@@ -177,6 +189,7 @@ export default function DashboardNavigation() {
 				global.history.replaceState( {}, '', `#${ closestID }` );
 				setSelectedID( closestID );
 			}
+			setValue( UI_CONTEXT_HASH, closestID );
 		};
 
 		const throttledOnScroll = throttle( onScroll, 50 );
@@ -187,7 +200,14 @@ export default function DashboardNavigation() {
 		return () => {
 			global.removeEventListener( 'scroll', throttledOnScroll );
 		};
-	}, [ showTraffic, showContent, showSpeed, showMonetization ] );
+	}, [
+		showTraffic,
+		showContent,
+		showSpeed,
+		showMonetization,
+		isScrolling,
+		setValue,
+	] );
 
 	return (
 		<div className="googlesitekit-navigation mdc-chip-set">

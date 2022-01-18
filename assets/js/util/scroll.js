@@ -70,3 +70,30 @@ export function getContextScrollTop( context, breakpoint ) {
 		anchorAdjustment
 	);
 }
+
+/**
+ * Scrolls window with callback.
+ *
+ * Copied from https://stackoverflow.com/questions/52292603/is-there-a-callback-for-window-scrollto/55686711.
+ *
+ * @since n.e.x.t
+ *
+ * @param {number}   offset   Offset to scroll to.
+ * @param {Function} callback Callback function.
+ */
+export function scrollTo( offset, callback ) {
+	const fixedOffset = offset.toFixed();
+	const onScroll = function () {
+		if ( global.scrollY.toFixed() === fixedOffset ) {
+			global.removeEventListener( 'scroll', onScroll );
+			callback();
+		}
+	};
+
+	global.addEventListener( 'scroll', onScroll );
+	onScroll();
+	global.scrollTo( {
+		top: offset,
+		behavior: 'smooth',
+	} );
+}

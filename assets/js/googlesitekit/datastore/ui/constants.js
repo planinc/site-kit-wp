@@ -17,3 +17,6 @@
  */
 
 export const CORE_UI = 'core/ui';
+
+export const UI_IS_SCROLLING = 'isScrolling';
+export const UI_CONTEXT_HASH = 'contextHash';

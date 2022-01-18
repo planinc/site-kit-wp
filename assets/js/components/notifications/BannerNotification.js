@@ -53,6 +53,7 @@ import { getItem, setItem, deleteItem } from '../../googlesitekit/api/cache';
 import { trackEvent } from '../../util';
 import { VIEW_CONTEXT_DASHBOARD } from '../../googlesitekit/constants';
 import { useBreakpoint } from '../../hooks/useBreakpoint';
+import { useScrollWindowTo } from '../../hooks/useScrollWindowTo';
 
 function BannerNotification( {
 	anchorLink,
@@ -96,6 +97,8 @@ function BannerNotification( {
 		setItem( cacheKeyDismissed, new Date(), { ttl: null } );
 
 	const breakpoint = useBreakpoint();
+
+	const scrollWindowTo = useScrollWindowTo();
 
 	useMount( async () => {
 		await trackEvent(
@@ -178,13 +181,10 @@ function BannerNotification( {
 
 				global.history.replaceState( {}, '', anchorLink );
 
-				global.scrollTo( {
-					top: getContextScrollTop( anchorLink, breakpoint ),
-					behavior: 'smooth',
-				} );
+				scrollWindowTo( getContextScrollTop( anchorLink, breakpoint ) );
 			}
 		},
-		[ anchorLink, breakpoint ]
+		[ anchorLink, breakpoint, scrollWindowTo ]
 	);
 
 	async function handleLearnMore( e ) {
