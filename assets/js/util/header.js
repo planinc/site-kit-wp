@@ -3,9 +3,12 @@ export function getHeaderHeight( breakpoint ) {
 
 	const hasStickyAdminBar = breakpoint !== 'small';
 
-	const headerHeight = hasStickyAdminBar
-		? header.getBoundingClientRect().bottom
-		: header.offsetHeight;
+	const headerHeight =
+		( header &&
+			( hasStickyAdminBar
+				? header.getBoundingClientRect().bottom
+				: header.offsetHeight ) ) ||
+		0;
 
 	/*
 	 * Factor in the height of the new sticky unified dashboard navigation bar

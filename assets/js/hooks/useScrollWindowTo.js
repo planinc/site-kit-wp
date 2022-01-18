@@ -11,7 +11,7 @@ const { useDispatch } = Data;
 export function useScrollWindowTo() {
 	const { setValue } = useDispatch( CORE_UI );
 
-	const dashboardScrollTo = useCallback(
+	const scrollWindowTo = useCallback(
 		( offset ) => {
 			setValue( UI_IS_SCROLLING, true );
 
@@ -25,5 +25,5 @@ export function useScrollWindowTo() {
 		[ setValue ]
 	);
 
-	return dashboardScrollTo;
+	return scrollWindowTo;
 }

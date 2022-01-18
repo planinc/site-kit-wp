@@ -47,7 +47,6 @@ import { CORE_WIDGETS } from '../googlesitekit/widgets/datastore/constants';
 import {
 	CORE_UI,
 	UI_IS_SCROLLING,
-	UI_CONTEXT_HASH,
 } from '../googlesitekit/datastore/ui/constants';
 import {
 	CONTEXT_ENTITY_DASHBOARD_TRAFFIC,
@@ -65,7 +64,7 @@ import useDashboardType, {
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { getContextScrollTop } from '../util/scroll';
 import { useScrollWindowTo } from '../hooks/useScrollWindowTo';
-const { useSelect, useDispatch } = Data;
+const { useSelect } = Data;
 
 export default function DashboardNavigation() {
 	const dashboardType = useDashboardType();
@@ -112,7 +111,6 @@ export default function DashboardNavigation() {
 	const isScrolling = useSelect( ( select ) =>
 		select( CORE_UI ).getValue( UI_IS_SCROLLING )
 	);
-	const { setValue } = useDispatch( CORE_UI );
 
 	const handleSelect = useCallback(
 		( { target } ) => {
@@ -188,7 +186,6 @@ export default function DashboardNavigation() {
 			if ( closestID !== hash?.substring( 1 ) ) {
 				global.history.replaceState( {}, '', `#${ closestID }` );
 				setSelectedID( closestID );
-				setValue( UI_CONTEXT_HASH, closestID );
 			}
 		};
 
@@ -200,14 +197,7 @@ export default function DashboardNavigation() {
 		return () => {
 			global.removeEventListener( 'scroll', throttledOnScroll );
 		};
-	}, [
-		showTraffic,
-		showContent,
-		showSpeed,
-		showMonetization,
-		isScrolling,
-		setValue,
-	] );
+	}, [ showTraffic, showContent, showSpeed, showMonetization, isScrolling ] );
 
 	return (
 		<div className="googlesitekit-navigation mdc-chip-set">

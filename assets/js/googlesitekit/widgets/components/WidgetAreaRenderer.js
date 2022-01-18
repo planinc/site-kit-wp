@@ -34,11 +34,7 @@ import { useEffect, useRef, useState } from '@wordpress/element';
 import Data from 'googlesitekit-data';
 import { HIDDEN_CLASS } from '../util/constants';
 import { CORE_WIDGETS, WIDGET_AREA_STYLES } from '../datastore/constants';
-import {
-	CORE_UI,
-	UI_IS_SCROLLING,
-	UI_CONTEXT_HASH,
-} from '../../datastore/ui/constants';
+import { CORE_UI, UI_IS_SCROLLING } from '../../datastore/ui/constants';
 import WidgetRenderer from './WidgetRenderer';
 import { getWidgetLayout, combineWidgets } from '../util';
 import { Cell, Grid, Row } from '../../../material-components';
@@ -54,7 +50,7 @@ export default function WidgetAreaRenderer( { slug, totalAreas } ) {
 
 	const widgetAreaRef = useRef();
 	const intersectionEntry = useIntersection( widgetAreaRef, {
-		rootMargin: '0px',
+		rootMargin: `-${ getHeaderHeight() }px 0px 0px 0px`,
 		threshold: 0, // Trigger "in-view" as soon as one pixel is visible.
 	} );
 
@@ -80,20 +76,12 @@ export default function WidgetAreaRenderer( { slug, totalAreas } ) {
 		select( CORE_UI ).getValue( UI_IS_SCROLLING )
 	);
 
-	const contextHash = useSelect( ( select ) =>
-		select( CORE_UI ).getValue( UI_CONTEXT_HASH )
-	);
-
 	useEffect( () => {
 		setInViewState( {
 			key: `WidgetAreaRenderer-${ slug }`,
-			value:
-				! isScrolling &&
-				!! intersectionEntry?.intersectionRatio &&
-				widgetAreaRef.current?.getBoundingClientRect().bottom >
-					getHeaderHeight(),
+			value: ! isScrolling && !! intersectionEntry?.intersectionRatio,
 		} );
-	}, [ isScrolling, intersectionEntry, slug, contextHash ] );
+	}, [ isScrolling, intersectionEntry, slug ] );
 
 	// Compute the layout.
 	const { columnWidths, rowIndexes } = getWidgetLayout(
