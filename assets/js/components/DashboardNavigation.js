@@ -188,8 +188,8 @@ export default function DashboardNavigation() {
 			if ( closestID !== hash?.substring( 1 ) ) {
 				global.history.replaceState( {}, '', `#${ closestID }` );
 				setSelectedID( closestID );
+				setValue( UI_CONTEXT_HASH, closestID );
 			}
-			setValue( UI_CONTEXT_HASH, closestID );
 		};
 
 		const throttledOnScroll = throttle( onScroll, 50 );

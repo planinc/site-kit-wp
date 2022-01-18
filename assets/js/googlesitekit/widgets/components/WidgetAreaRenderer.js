@@ -34,16 +34,22 @@ import { useEffect, useRef, useState } from '@wordpress/element';
 import Data from 'googlesitekit-data';
 import { HIDDEN_CLASS } from '../util/constants';
 import { CORE_WIDGETS, WIDGET_AREA_STYLES } from '../datastore/constants';
-import { CORE_UI, UI_CONTEXT_HASH } from '../../datastore/ui/constants';
+import {
+	CORE_UI,
+	UI_IS_SCROLLING,
+	UI_CONTEXT_HASH,
+} from '../../datastore/ui/constants';
 import WidgetRenderer from './WidgetRenderer';
 import { getWidgetLayout, combineWidgets } from '../util';
 import { Cell, Grid, Row } from '../../../material-components';
 import WidgetCellWrapper from './WidgetCellWrapper';
 import InViewProvider from '../../../components/InViewProvider';
 import { useFeature } from '../../../hooks/useFeature';
+import { getHeaderHeight } from '../../../util/header';
+
 const { useSelect } = Data;
 
-export default function WidgetAreaRenderer( { slug, totalAreas, contextID } ) {
+export default function WidgetAreaRenderer( { slug, totalAreas } ) {
 	const unifiedDashboardEnabled = useFeature( 'unifiedDashboard' );
 
 	const widgetAreaRef = useRef();
@@ -70,6 +76,10 @@ export default function WidgetAreaRenderer( { slug, totalAreas, contextID } ) {
 		value: !! intersectionEntry?.intersectionRatio,
 	} );
 
+	const isScrolling = useSelect( ( select ) =>
+		select( CORE_UI ).getValue( UI_IS_SCROLLING )
+	);
+
 	const contextHash = useSelect( ( select ) =>
 		select( CORE_UI ).getValue( UI_CONTEXT_HASH )
 	);
@@ -78,10 +88,12 @@ export default function WidgetAreaRenderer( { slug, totalAreas, contextID } ) {
 		setInViewState( {
 			key: `WidgetAreaRenderer-${ slug }`,
 			value:
-				contextHash === contextID &&
-				!! intersectionEntry?.intersectionRatio,
+				! isScrolling &&
+				!! intersectionEntry?.intersectionRatio &&
+				widgetAreaRef.current?.getBoundingClientRect().bottom >
+					getHeaderHeight(),
 		} );
-	}, [ contextHash, contextID, intersectionEntry?.intersectionRatio, slug ] );
+	}, [ isScrolling, intersectionEntry, slug, contextHash ] );
 
 	// Compute the layout.
 	const { columnWidths, rowIndexes } = getWidgetLayout(

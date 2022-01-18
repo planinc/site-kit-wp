@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+import { getHeaderHeight } from './header';
+
 /**
  * Gets the y coordinate to scroll to the top of a context element, taking the sticky admin bar, header and navigation height into account.
  *
@@ -33,23 +35,7 @@ export function getContextScrollTop( context, breakpoint ) {
 
 	const contextTop = contextElement.getBoundingClientRect().top;
 
-	const header = document.querySelector( '.googlesitekit-header' );
-
-	const hasStickyAdminBar = breakpoint !== 'small';
-
-	const headerHeight = hasStickyAdminBar
-		? header.getBoundingClientRect().bottom
-		: header.offsetHeight;
-
-	/*
-	 * Factor in the height of the new sticky unified dashboard navigation bar
-	 * if it exists (when unified dashboard is enabled).
-	 *
-	 * @TODO Update this section to always factor in the navigation height
-	 * when `unifiedDashboard` feature flag is removed.
-	 */
-	const navigation = document.querySelector( '.googlesitekit-navigation' );
-	const navigationHeight = navigation ? navigation.offsetHeight : 0;
+	const headerHeight = getHeaderHeight( breakpoint );
 
 	/*
 	 * The old PSI dashboard widget anchor points to the widget box and not the
@@ -62,13 +48,7 @@ export function getContextScrollTop( context, breakpoint ) {
 	const anchorAdjustment =
 		context === '#googlesitekit-pagespeed-header' ? 80 : 0;
 
-	return (
-		contextTop +
-		global.scrollY -
-		headerHeight -
-		navigationHeight -
-		anchorAdjustment
-	);
+	return contextTop + global.scrollY - headerHeight - anchorAdjustment;
 }
 
 /**
