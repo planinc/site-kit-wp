@@ -29,26 +29,61 @@ import { __ } from '@wordpress/i18n';
 import useActivateModuleCallback from '../../../../../hooks/useActivateModuleCallback';
 import Button from '../../../../../components/Button';
 import { Cell, Grid, Row } from '../../../../../material-components';
+import VisitorsGraph from '../../../../../../svg/graphics/cta-graph-visitors.svg';
+import GoalsGraph from '../../../../../../svg/graphics/cta-graph-goals.svg';
 
+const CTAGraph = ( { title, GraphSVG } ) => (
+	<div className="googlesitekit-cta__graph">
+		{ title }
+		<div>
+			<GraphSVG />
+		</div>
+	</div>
+);
 export default function ActivateAnalyticsCTA() {
 	const activateModuleCallback = useActivateModuleCallback( 'analytics' );
 
 	if ( ! activateModuleCallback ) return null;
 
+	const title = (
+		<span>
+			See how many people visit your site from Search and track how you’re
+			achieving your goals: <b>install Google Analytics</b>.
+		</span>
+	);
+
+	const buttonLabel = __( 'Set up Google Analytics', 'google-site-kit' );
+	const onButtonClick = activateModuleCallback;
+
+	const paneContent = (
+		<div className="googlesitekit-cta__activate-analytics">
+			<CTAGraph
+				title="Unique visitors from Search"
+				GraphSVG={ VisitorsGraph }
+			/>
+			<CTAGraph title="Goals completed" GraphSVG={ GoalsGraph } />
+		</div>
+	);
+
+	const cellProps = {
+		smSize: 4,
+		mdSize: 8,
+		lgSize: 6,
+	};
+
 	return (
 		<Grid>
 			<Row>
-				<Cell>
-					See how many people visit your site from Search and track
-					how you’re achieving your goals:
-					<b>install Google Analytics</b>.
+				<Cell { ...cellProps }>
+					{ title }
 					<Button
 						className="mdc-button--cta"
-						onClick={ activateModuleCallback }
+						onClick={ onButtonClick }
 					>
-						{ __( 'Set up Google Analytics', 'google-site-kit' ) }
+						{ buttonLabel }
 					</Button>
 				</Cell>
+				<Cell { ...cellProps }>{ paneContent }</Cell>
 			</Row>
 		</Grid>
 	);
