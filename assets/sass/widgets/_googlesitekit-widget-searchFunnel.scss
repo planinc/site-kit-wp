@@ -1,10 +1,17 @@
 .googlesitekit-plugin {
 
-	.googlesitekit-cta__activate-analytics {
+	.googlesitekit-cta--activate-analytics {
 		display: flex;
+		flex-wrap: wrap;
+	}
 
-		.googlesitekit-cta__graph {
-			min-width: 100px;
-		}
+	.googlesitekit-cta--graph {
+		min-width: 100px;
+	}
+
+
+	.mdc-button--cta {
+		letter-spacing: normal;
+		text-transform: none;
 	}
 }

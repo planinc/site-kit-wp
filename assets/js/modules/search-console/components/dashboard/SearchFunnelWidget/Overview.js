@@ -43,13 +43,15 @@ import { CORE_SITE } from '../../../../../googlesitekit/datastore/site/constants
 import { MODULES_ANALYTICS } from '../../../../analytics/datastore/constants';
 import { CORE_LOCATION } from '../../../../../googlesitekit/datastore/location/constants';
 import CompleteModuleActivationCTA from '../../../../../components/CompleteModuleActivationCTA';
-// import ActivateModuleCTA from '../../../../../components/ActivateModuleCTA';
+import ActivateModuleCTA from '../../../../../components/ActivateModuleCTA';
 import ActivateAnalyticsCTA from './ActivateAnalyticsCTA';
+import CreateGoalCTA from './CreateGoalCTA';
 import CTA from '../../../../../components/notifications/CTA';
 import ViewContextContext from '../../../../../components/Root/ViewContextContext';
 import DataBlock from '../../../../../components/DataBlock';
 import ProgressBar from '../../../../../components/ProgressBar';
 import ReportZero from '../../../../../components/ReportZero';
+import { useFeature } from '../../../../../hooks/useFeature';
 const { useSelect, useInViewSelect } = Data;
 
 function getDatapointAndChange( [ report ], selectedStat, divider = 1 ) {
@@ -74,6 +76,8 @@ const Overview = ( {
 	error,
 	WidgetReportError,
 } ) => {
+	const zeroDataStatesEnabled = useFeature( 'zeroDataStates' );
+
 	const viewContext = useContext( ViewContextContext );
 	const analyticsModuleConnected = useSelect( ( select ) =>
 		select( CORE_MODULES ).isModuleConnected( 'analytics' )
@@ -201,9 +205,12 @@ const Overview = ( {
 				{ ( ! analyticsModuleConnected || ! analyticsModuleActive ) &&
 					! isNavigatingToReauthURL && (
 						<Cell { ...halfCellProps }>
-							{ ! analyticsModuleActive && (
-								<ActivateAnalyticsCTA />
-							) }
+							{ ! analyticsModuleActive &&
+								( zeroDataStatesEnabled ? (
+									<ActivateAnalyticsCTA />
+								) : (
+									<ActivateModuleCTA moduleSlug="analytics" />
+								) ) }
 
 							{ analyticsModuleActive &&
 								! analyticsModuleConnected && (
@@ -251,24 +258,27 @@ const Overview = ( {
 
 							<Cell { ...quarterCellProps }>
 								{ viewContext === VIEW_CONTEXT_DASHBOARD &&
-									! analyticsGoalsData?.items?.length && (
-										<CTA
-											title={ __(
-												'Use goals to measure success',
-												'google-site-kit'
-											) }
-											description={ __(
-												'Goals measure how well your site or app fulfills your target objectives',
-												'google-site-kit'
-											) }
-											ctaLink={ supportURL }
-											ctaLabel={ __(
-												'Create a new goal',
-												'google-site-kit'
-											) }
-											ctaLinkExternal
-										/>
-									) }
+								! analyticsGoalsData?.items?.length &&
+								zeroDataStatesEnabled ? (
+									<CreateGoalCTA />
+								) : (
+									<CTA
+										title={ __(
+											'Use goals to measure success',
+											'google-site-kit'
+										) }
+										description={ __(
+											'Goals measure how well your site or app fulfills your target objectives',
+											'google-site-kit'
+										) }
+										ctaLink={ supportURL }
+										ctaLabel={ __(
+											'Create a new goal',
+											'google-site-kit'
+										) }
+										ctaLinkExternal
+									/>
+								) }
 								{ viewContext === VIEW_CONTEXT_DASHBOARD &&
 									analyticsGoalsData?.items?.length > 0 && (
 										<DataBlock
