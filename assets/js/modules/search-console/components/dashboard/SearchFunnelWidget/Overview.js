@@ -43,7 +43,8 @@ import { CORE_SITE } from '../../../../../googlesitekit/datastore/site/constants
 import { MODULES_ANALYTICS } from '../../../../analytics/datastore/constants';
 import { CORE_LOCATION } from '../../../../../googlesitekit/datastore/location/constants';
 import CompleteModuleActivationCTA from '../../../../../components/CompleteModuleActivationCTA';
-import ActivateModuleCTA from '../../../../../components/ActivateModuleCTA';
+// import ActivateModuleCTA from '../../../../../components/ActivateModuleCTA';
+import ActivateAnalyticsCTA from './ActivateAnalyticsCTA';
 import CTA from '../../../../../components/notifications/CTA';
 import ViewContextContext from '../../../../../components/Root/ViewContextContext';
 import DataBlock from '../../../../../components/DataBlock';
@@ -155,6 +156,8 @@ const Overview = ( {
 		} )
 	);
 
+	analyticsGoalsData = [];
+
 	return (
 		<Grid>
 			<Row>
@@ -199,7 +202,7 @@ const Overview = ( {
 					! isNavigatingToReauthURL && (
 						<Cell { ...halfCellProps }>
 							{ ! analyticsModuleActive && (
-								<ActivateModuleCTA moduleSlug="analytics" />
+								<ActivateAnalyticsCTA />
 							) }
 
 							{ analyticsModuleActive &&

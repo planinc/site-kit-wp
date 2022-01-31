@@ -95,4 +95,9 @@
 	.mdc-button__trailing-icon {
 		margin-left: 8px;
 	}
+
+	&--cta {
+		letter-spacing: normal;
+		text-transform: none;
+	}
 }
