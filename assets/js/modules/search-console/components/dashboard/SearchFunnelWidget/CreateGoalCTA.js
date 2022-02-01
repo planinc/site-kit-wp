@@ -1,6 +1,6 @@
 import Data from 'googlesitekit-data';
 import { CORE_SITE } from '../../../../../googlesitekit/datastore/site/constants';
-import AnalyticsCTA from './AnalyticsCTA';
+import AnalyticsCTA, { SIZE } from './AnalyticsCTA';
 import CTAGraph from './CTAGraph';
 import GoalsGraph from '../../../../../../svg/graphics/cta-graph-goals.svg';
 const { useSelect } = Data;
@@ -15,6 +15,7 @@ export default function CreateGoalCTA() {
 
 	return (
 		<AnalyticsCTA
+			size={ SIZE.HALF }
 			title="Set up goals to track how well your site fullfils your business objectives"
 			label="Create a new goal"
 			href={ supportURL }
