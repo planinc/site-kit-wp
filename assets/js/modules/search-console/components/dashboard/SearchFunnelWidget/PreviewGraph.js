@@ -1,4 +1,4 @@
-export default function CTAGraph( { title, GraphSVG } ) {
+export default function PreviewGraph( { title, GraphSVG } ) {
 	return (
 		<div className="googlesitekit-cta--graph">
 			{ title }

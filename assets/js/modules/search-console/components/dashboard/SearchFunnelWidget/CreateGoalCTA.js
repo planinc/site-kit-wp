@@ -1,7 +1,7 @@
 import Data from 'googlesitekit-data';
 import { CORE_SITE } from '../../../../../googlesitekit/datastore/site/constants';
 import Button from '../../../../../components/Button';
-import CTAGraph from './CTAGraph';
+import PreviewGraph from './PreviewGraph';
 import GoalsGraph from '../../../../../../svg/graphics/cta-graph-goals.svg';
 const { useSelect } = Data;
 
@@ -27,7 +27,7 @@ export default function CreateGoalCTA() {
 				</Button>
 			</div>
 			<div>
-				<CTAGraph title="Goals completed" GraphSVG={ GoalsGraph } />
+				<PreviewGraph title="Goals completed" GraphSVG={ GoalsGraph } />
 			</div>
 		</div>
 	);

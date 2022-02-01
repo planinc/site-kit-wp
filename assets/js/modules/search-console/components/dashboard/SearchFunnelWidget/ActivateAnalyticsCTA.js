@@ -1,6 +1,6 @@
 import useActivateModuleCallback from '../../../../../hooks/useActivateModuleCallback';
 import Button from '../../../../../components/Button';
-import CTAGraph from './CTAGraph';
+import PreviewGraph from './PreviewGraph';
 import VisitorsGraph from '../../../../../../svg/graphics/cta-graph-visitors.svg';
 import GoalsGraph from '../../../../../../svg/graphics/cta-graph-goals.svg';
 
@@ -26,11 +26,14 @@ export default function ActivateAnalyticsCTA() {
 			</div>
 			<div>
 				<div className="googlesitekit-cta--activate-analytics">
-					<CTAGraph
+					<PreviewGraph
 						title="Unique visitors from Search"
 						GraphSVG={ VisitorsGraph }
 					/>
-					<CTAGraph title="Goals completed" GraphSVG={ GoalsGraph } />
+					<PreviewGraph
+						title="Goals completed"
+						GraphSVG={ GoalsGraph }
+					/>
 				</div>
 			</div>
 		</div>
