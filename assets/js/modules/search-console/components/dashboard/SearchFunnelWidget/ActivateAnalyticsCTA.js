@@ -1,5 +1,5 @@
 import useActivateModuleCallback from '../../../../../hooks/useActivateModuleCallback';
-import AnalyticsCTA from './AnalyticsCTA';
+import Button from '../../../../../components/Button';
 import CTAGraph from './CTAGraph';
 import VisitorsGraph from '../../../../../../svg/graphics/cta-graph-visitors.svg';
 import GoalsGraph from '../../../../../../svg/graphics/cta-graph-goals.svg';
@@ -10,17 +10,21 @@ export default function ActivateAnalyticsCTA() {
 	if ( ! activateModuleCallback ) return null;
 
 	return (
-		<AnalyticsCTA
-			title={
+		<div className="googlesitekit-cta--analytics googlesitekit-cta--analytics--full">
+			<div>
 				<span>
 					See how many people visit your site from Search and track
 					how you’re achieving your goals:&nbsp;
 					<b>install Google Analytics</b>.
 				</span>
-			}
-			label="Set up Google Analytics"
-			onClick={ activateModuleCallback }
-			paneContent={
+				<Button
+					className="mdc-button--cta"
+					onClick={ activateModuleCallback }
+				>
+					Set up Google Analytics
+				</Button>
+			</div>
+			<div>
 				<div className="googlesitekit-cta--activate-analytics">
 					<CTAGraph
 						title="Unique visitors from Search"
@@ -28,7 +32,7 @@ export default function ActivateAnalyticsCTA() {
 					/>
 					<CTAGraph title="Goals completed" GraphSVG={ GoalsGraph } />
 				</div>
-			}
-		/>
+			</div>
+		</div>
 	);
 }

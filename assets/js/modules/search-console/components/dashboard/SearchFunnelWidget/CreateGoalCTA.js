@@ -1,6 +1,6 @@
 import Data from 'googlesitekit-data';
 import { CORE_SITE } from '../../../../../googlesitekit/datastore/site/constants';
-import AnalyticsCTA, { SIZE } from './AnalyticsCTA';
+import Button from '../../../../../components/Button';
 import CTAGraph from './CTAGraph';
 import GoalsGraph from '../../../../../../svg/graphics/cta-graph-goals.svg';
 const { useSelect } = Data;
@@ -14,14 +14,21 @@ export default function CreateGoalCTA() {
 	);
 
 	return (
-		<AnalyticsCTA
-			size={ SIZE.HALF }
-			title="Set up goals to track how well your site fullfils your business objectives"
-			label="Create a new goal"
-			href={ supportURL }
-			paneContent={
+		<div className="googlesitekit-cta--analytics googlesitekit-cta--analytics--half">
+			<div>
+				Set up goals to track how well your site fullfils your business
+				objectives
+				<Button
+					className="mdc-button--cta"
+					href={ supportURL }
+					target="_blank"
+				>
+					Create a new goal
+				</Button>
+			</div>
+			<div>
 				<CTAGraph title="Goals completed" GraphSVG={ GoalsGraph } />
-			}
-		/>
+			</div>
+		</div>
 	);
 }
