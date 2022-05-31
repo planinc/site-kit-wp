@@ -19,7 +19,8 @@
 /**
  * WordPress dependencies
  */
-import { Fragment } from '@wordpress/element';
+import { Fragment, useState } from '@wordpress/element';
+import { __ } from '@wordpress/i18n';
 
 /**
  * Internal dependencies
@@ -36,7 +37,110 @@ import AdSenseAlerts from './AdSenseAlerts';
 import ZeroDataStateNotifications from './ZeroDataStateNotifications';
 import { CORE_USER } from '../../googlesitekit/datastore/user/constants';
 import useViewOnly from '../../hooks/useViewOnly';
+import BannerNotification from './BannerNotification';
+import TourTooltip from '../../components/TourTooltip';
+import Joyride, { EVENTS } from 'react-joyride';
+
 const { useSelect } = Data;
+
+// TODO: Share this configuration with TourTooltips, where it's been copied from.
+
+/** For available options, see: {@link https://github.com/gilbarbara/react-joyride/blob/3e08384415a831b20ce21c8423b6c271ad419fbf/src/styles.js}. */
+const joyrideStyles = {
+	options: {
+		arrowColor: '#1A73E8', // $c-royal-blue
+		backgroundColor: '#1A73E8', // $c-royal-blue
+		overlayColor: 'rgba(0, 0, 0, 0.6)',
+		textColor: '#ffffff', // $c-white
+	},
+};
+
+// Provides button content as well as aria-label & title attribute values.
+const joyrideLocale = {
+	last: __( 'Got it', 'google-site-kit' ),
+};
+
+/** For available options, see: {@link https://github.com/gilbarbara/react-floater#props}. */
+const floaterProps = {
+	disableAnimation: true,
+	styles: {
+		arrow: {
+			length: 8,
+			margin: 56,
+			spread: 16,
+		},
+		floater: {
+			filter:
+				'drop-shadow(rgba(60, 64, 67, 0.3) 0px 1px 2px) drop-shadow(rgba(60, 64, 67, 0.15) 0px 2px 6px)',
+		},
+	},
+};
+
+function Acknowledgement( { title, content, target, onDismiss } ) {
+	const steps = [
+		{
+			title,
+			target,
+			content,
+			disableBeacon: true,
+			isFixed: true,
+			placement: 'auto',
+		},
+	];
+
+	return (
+		<Joyride
+			callback={ ( { type } ) => {
+				if ( type === EVENTS.STEP_AFTER ) {
+					// This is not strictly necessary as the tooltip will hide without it, but this allows the consumer of the component to clean up post-dismiss.
+					onDismiss();
+				}
+			} }
+			disableOverlay
+			disableScrolling
+			floaterProps={ floaterProps }
+			locale={ joyrideLocale }
+			run={ true }
+			steps={ steps }
+			styles={ joyrideStyles }
+			tooltipComponent={ TourTooltip }
+		/>
+	);
+}
+
+function BannerWithAcknowledgement() {
+	const [ showAck, setShowAck ] = useState( false );
+
+	return (
+		<Fragment>
+			<BannerNotification
+				id="test-notification"
+				title="Test Notification"
+				description="This is a test notification."
+				dismiss="Dismiss me"
+				dismissExpires={ 1 }
+				isDismissible={ true }
+				onDismiss={ () => {
+					// eslint-disable-next-line no-console
+					console.log( 'Notification dismissed' );
+					setShowAck( true );
+				} }
+			/>
+			{ showAck && (
+				<Acknowledgement
+					title="Acknowledgement Title"
+					content="This is an acknowledgement"
+					target=".googlesitekit-submenu-item__googlesitekit-settings"
+					onDismiss={ () => {
+						// eslint-disable-next-line no-console
+						console.log( 'Acknowledgement dismissed' );
+						setShowAck( false );
+					} }
+				/>
+			) }
+		</Fragment>
+	);
+}
 
 export default function BannerNotifications() {
 	const ideaHubModuleEnabled = useFeature( 'ideaHubModule' );
@@ -54,8 +158,41 @@ export default function BannerNotifications() {
 
 	const [ notification ] = useQueryArg( 'notification' );
 
+	// const banner = (
+	// 	<Fragment>
+	// 		<BannerNotification
+	// 			id="test-notification-2"
+	// 			title="Test Notification"
+	// 			description="This is a test notification."
+	// 			dismiss="Dismiss me"
+	// 			dismissExpires={ 1 }
+	// 			isDismissible={ true }
+	// 			onDismiss={ () => {
+	// 				console.log( 'Dismissed' );
+	// 			} }
+	// 		/>
+	// 		<TourTooltips
+	// 			tourID={ 'foo2-tour-id' }
+	// 			steps={ [
+	// 				{
+	// 					title: 'Step 1',
+	// 					target:
+	// 						'.googlesitekit-submenu-item__googlesitekit-settings',
+	// 					content: 'This is my awesome feature!',
+	// 				},
+	// 			] }
+	// 			gaEventCategory={ 'foo-event-category' }
+	// 			callback={ () => {
+	// 				console.log( 'TourTooltips callback' );
+	// 			} }
+	// 		/>
+	// 	</Fragment>
+	// );
+
 	return (
 		<Fragment>
+			<BannerWithAcknowledgement />
+			{ /* { banner } */ }
 			{ ! viewOnly && (
 				<Fragment>
 					{ ( 'authentication_success' === notification ||
