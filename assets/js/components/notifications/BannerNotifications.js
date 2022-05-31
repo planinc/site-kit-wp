@@ -158,41 +158,9 @@ export default function BannerNotifications() {
 
 	const [ notification ] = useQueryArg( 'notification' );
 
-	// const banner = (
-	// 	<Fragment>
-	// 		<BannerNotification
-	// 			id="test-notification-2"
-	// 			title="Test Notification"
-	// 			description="This is a test notification."
-	// 			dismiss="Dismiss me"
-	// 			dismissExpires={ 1 }
-	// 			isDismissible={ true }
-	// 			onDismiss={ () => {
-	// 				console.log( 'Dismissed' );
-	// 			} }
-	// 		/>
-	// 		<TourTooltips
-	// 			tourID={ 'foo2-tour-id' }
-	// 			steps={ [
-	// 				{
-	// 					title: 'Step 1',
-	// 					target:
-	// 						'.googlesitekit-submenu-item__googlesitekit-settings',
-	// 					content: 'This is my awesome feature!',
-	// 				},
-	// 			] }
-	// 			gaEventCategory={ 'foo-event-category' }
-	// 			callback={ () => {
-	// 				console.log( 'TourTooltips callback' );
-	// 			} }
-	// 		/>
-	// 	</Fragment>
-	// );
-
 	return (
 		<Fragment>
 			<BannerWithAcknowledgement />
-			{ /* { banner } */ }
 			{ ! viewOnly && (
 				<Fragment>
 					{ ( 'authentication_success' === notification ||
