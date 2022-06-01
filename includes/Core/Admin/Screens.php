@@ -112,20 +112,6 @@ final class Screens {
 			}
 		);
 
-		// Add custom HTML class to SiteKit submenu items - this will ensure the class .googlesitekit-submenu-item__googlesitekit-settings is added
-		// to the Settings menu item, allowing it to be targeted with a tooltip.
-		add_action(
-			'admin_init',
-			function() {
-				global $submenu;
-				foreach ( $submenu['googlesitekit-dashboard'] as &$item ) {
-					$slug = $item[2];
-					// $item[4] is added to the submenu as a class. See _wp_menu_output in wp-admin/menu-header.php.
-					$item[4] = "googlesitekit-submenu-item__{$slug}";
-				}
-			}
-		);
-
 		add_action(
 			'admin_enqueue_scripts',
 			function( $hook_suffix ) {

@@ -130,7 +130,7 @@ function BannerWithAcknowledgement() {
 				<Acknowledgement
 					title="Acknowledgement Title"
 					content="This is an acknowledgement"
-					target=".googlesitekit-submenu-item__googlesitekit-settings"
+					target="#adminmenu [href*='page=googlesitekit-settings']"
 					onDismiss={ () => {
 						// eslint-disable-next-line no-console
 						console.log( 'Acknowledgement dismissed' );
