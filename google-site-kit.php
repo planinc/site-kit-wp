@@ -110,3 +110,14 @@ add_action( 'upgrader_process_complete', 'googlesitekit_opcache_reset' );
 if ( version_compare( PHP_VERSION, GOOGLESITEKIT_PHP_MINIMUM, '>=' ) ) {
 	require_once plugin_dir_path( __FILE__ ) . 'includes/loader.php';
 }
+
+
+function gutenberg_examples_01_register_block() {
+    register_block_type(
+		path_join(
+			dirname( GOOGLESITEKIT_PLUGIN_MAIN_FILE ),
+			'blocks/thank-with-google/supporter-wall/'
+		)
+	);
+}
+add_action( 'init', 'gutenberg_examples_01_register_block' );

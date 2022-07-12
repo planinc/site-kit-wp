@@ -1,0 +1,15 @@
+{
+	"$schema": "https://json.schemastore.org/block.json",
+    "apiVersion": 2,
+    "title": "Thank with Google: Supporter Wall",
+    "name": "googlesitekit/twg-supporter-wall",
+	"icon": "universal-access-alt",
+    "category": "widgets",
+    "editorScript": "file:./block.js",
+    "attributes": {
+        "title": {
+            "type": "string",
+            "default": ""
+        }
+    }
+}
