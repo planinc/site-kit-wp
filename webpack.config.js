@@ -33,7 +33,7 @@ const WebpackBar = require( 'webpackbar' );
 const { DefinePlugin, ProvidePlugin } = require( 'webpack' );
 const { BundleAnalyzerPlugin } = require( 'webpack-bundle-analyzer' );
 const CreateFileWebpack = require( 'create-file-webpack' );
-const ManifestPlugin = require( 'webpack-manifest-plugin' );
+const { WebpackManifestPlugin } = require( 'webpack-manifest-plugin' );
 const features = require( './feature-flags.json' );
 const formattedFeaturesToPHPArray = features
 	.map( ( feature ) => `'${ feature }'` )
@@ -44,61 +44,68 @@ const projectPath = ( relativePath ) => {
 };
 
 const manifestSeed = {};
-const manifestArgs = ( mode ) => ( {
-	fileName: path.resolve( __dirname, 'dist/manifest.php' ),
-	seed: manifestSeed,
-	generate( seedObj, files ) {
-		const entry = ( filename, hash ) => {
-			if ( mode === 'production' ) {
-				return [ filename, null ];
-			}
-			return [ filename, hash ];
-		};
-		files.forEach( ( file ) => {
-			if ( file.name.match( /\.css$/ ) ) {
-				// CSS file paths contain the destination directory which needs to be stripped
-				// because the MiniCssExtractPlugin does not have separate
-				// options for `file` and `path` like normal entries.
-				seedObj[ file.chunk.name ] = entry(
-					path.basename( file.path ),
-					file.chunk.contentHash[ 'css/mini-extract' ]
-				);
-			} else if ( file.chunk.name === 'runtime' ) {
-				seedObj[ 'googlesitekit-runtime' ] = entry(
-					file.path,
-					file.chunk.contentHash.javascript
-				);
-			} else if ( file.isInitial ) {
-				// Normal entries.
-				seedObj[ file.chunk.name ] = entry(
-					file.path,
-					file.chunk.contentHash.javascript
-				);
-			}
-		} );
-		return seedObj;
-	},
-	serialize( manifest ) {
-		const handles = Object.keys( manifest ).map( ( key ) =>
-			key.replace( /\.(css|js)$/, '' )
-		);
-		const maxLen = Math.max( ...handles.map( ( key ) => key.length ) );
-		const content = manifestTemplate.replace(
-			'{{assets}}',
-			Object.entries( manifest )
-				.map( ( [ handle, value ] ) => {
-					const values = value.map( ( v ) => JSON.stringify( v ) );
-					const alignment = ''.padEnd( maxLen - handle.length );
-					return `'${ handle }' ${ alignment }=> array( ${ values.join(
-						', '
-					) } ),`;
-				} )
-				.join( '\n\t' )
-		);
+const manifestArgs = ( mode ) => {
+	return {
+		fileName:
+			mode === 'production'
+				? projectPath( 'dist/manifest.php' )
+				: projectPath( 'manifest.php' ),
+		seed: manifestSeed,
+		generate( seedObj, files ) {
+			const entry = ( filename, hash ) => {
+				if ( mode === 'production' ) {
+					return [ filename, null ];
+				}
+				return [ filename, hash ];
+			};
+			files.forEach( ( file ) => {
+				if ( file.name.match( /\.css$/ ) ) {
+					// CSS file paths contain the destination directory which needs to be stripped
+					// because the MiniCssExtractPlugin does not have separate
+					// options for `file` and `path` like normal entries.
+					seedObj[ file.chunk.name ] = entry(
+						path.basename( file.path ),
+						file.chunk.contentHash[ 'css/mini-extract' ]
+					);
+				} else if ( file.chunk.name === 'runtime' ) {
+					seedObj[ 'googlesitekit-runtime' ] = entry(
+						file.path,
+						file.chunk.contentHash.javascript
+					);
+				} else if ( file.isInitial ) {
+					// Normal entries.
+					seedObj[ file.chunk.name ] = entry(
+						file.path,
+						file.chunk.contentHash.javascript
+					);
+				}
+			} );
+			return seedObj;
+		},
+		serialize( manifest ) {
+			const handles = Object.keys( manifest ).map( ( key ) =>
+				key.replace( /\.(css|js)$/, '' )
+			);
+			const maxLen = Math.max( ...handles.map( ( key ) => key.length ) );
+			const content = manifestTemplate.replace(
+				'{{assets}}',
+				Object.entries( manifest )
+					.map( ( [ handle, value ] ) => {
+						const values = value.map( ( v ) =>
+							JSON.stringify( v )
+						);
+						const alignment = ''.padEnd( maxLen - handle.length );
+						return `'${ handle }' ${ alignment }=> array( ${ values.join(
+							', '
+						) } ),`;
+					} )
+					.join( '\n\t' )
+			);
 
-		return content;
-	},
-} );
+			return content;
+		},
+	};
+};
 
 const manifestTemplate = `<?php
 /**
@@ -127,8 +134,6 @@ return array(
 );
 `;
 
-const noAMDParserRule = { parser: { amd: false } };
-
 const siteKitExternals = {
 	'googlesitekit-api': [ 'googlesitekit', 'api' ],
 	'googlesitekit-data': [ 'googlesitekit', 'data' ],
@@ -153,7 +158,6 @@ const svgRule = {
 };
 
 const createRules = ( mode ) => [
-	noAMDParserRule,
 	svgRule,
 	{
 		test: /\.js$/,
@@ -170,15 +174,12 @@ const createRules = ( mode ) => [
 				},
 			},
 		],
-		...noAMDParserRule,
 	},
 ];
 
 const createMinimizerRules = ( mode ) => [
 	new TerserPlugin( {
 		parallel: true,
-		sourceMap: mode !== 'production',
-		cache: true,
 		terserOptions: {
 			// We preserve function names that start with capital letters as
 			// they're _likely_ component names, and these are useful to have
@@ -187,6 +188,7 @@ const createMinimizerRules = ( mode ) => [
 			output: {
 				comments: /translators:/i,
 			},
+			sourceMap: mode !== 'production',
 		},
 		extractComments: false,
 	} ),
@@ -310,7 +312,7 @@ function* webpackConfig( env, argv ) {
 			// same webpage, there is a risk of conflicts of on-demand chunks in the global
 			// namespace.
 			// See: https://webpack.js.org/configuration/output/#outputjsonpfunction.
-			jsonpFunction: '__googlesitekit_webpackJsonp',
+			chunkLoadingGlobal: '__googlesitekit_webpackJsonp',
 		},
 		performance: {
 			maxEntrypointSize: 175000,
@@ -342,7 +344,7 @@ function* webpackConfig( env, argv ) {
 						`array( ${ formattedFeaturesToPHPArray } )`
 					),
 			} ),
-			new ManifestPlugin( {
+			new WebpackManifestPlugin( {
 				...manifestArgs( mode ),
 				filter( file ) {
 					return ( file.name || '' ).match( /\.js$/ );
@@ -414,7 +416,7 @@ function* webpackConfig( env, argv ) {
 				name: 'Basic Modules',
 				color: '#fb1105',
 			} ),
-			new ManifestPlugin( {
+			new WebpackManifestPlugin( {
 				...manifestArgs( mode ),
 				filter( file ) {
 					return ( file.name || '' ).match( /\.js$/ );
@@ -463,14 +465,14 @@ function* webpackConfig( env, argv ) {
 			new MiniCssExtractPlugin( {
 				filename:
 					'production' === mode
-						? '/assets/css/[name]-[contenthash].min.css'
-						: '/assets/css/[name].css',
+						? './assets/css/[name]-[contenthash].min.css'
+						: './assets/css/[name].css',
 			} ),
 			new WebpackBar( {
 				name: 'Plugin CSS',
 				color: '#4285f4',
 			} ),
-			new ManifestPlugin( {
+			new WebpackManifestPlugin( {
 				...manifestArgs( mode ),
 				filter( file ) {
 					return ( file.name || '' ).match( /\.css$/ );
@@ -495,7 +497,7 @@ function* webpackConfig( env, argv ) {
 			// same webpage, there is a risk of conflicts of on-demand chunks in the global
 			// namespace.
 			// See: https://webpack.js.org/configuration/output/#outputjsonpfunction.
-			jsonpFunction: '__googlesitekit_block_editor_webpackJsonp',
+			chunkLoadingGlobal: '__googlesitekit_block_editor_webpackJsonp',
 		},
 		performance: {
 			maxEntrypointSize: 175000,
@@ -514,7 +516,7 @@ function* webpackConfig( env, argv ) {
 				allowAsyncCycles: false,
 				cwd: process.cwd(),
 			} ),
-			new ManifestPlugin( {
+			new WebpackManifestPlugin( {
 				...manifestArgs( mode ),
 				filter( file ) {
 					return ( file.name || '' ).match( /\.js$/ );
@@ -561,7 +563,6 @@ function testBundle( mode ) {
 
 module.exports = {
 	externals,
-	noAMDParserRule,
 	projectPath,
 	resolve,
 	siteKitExternals,
@@ -579,7 +580,8 @@ module.exports.default = ( env, argv ) => {
 		} );
 	}
 
-	const { includeTests, mode } = argv;
+	const { includeTests } = env;
+	const { mode } = argv;
 
 	if ( mode !== 'production' || includeTests ) {
 		// Build the test files if we aren't doing a production build.
