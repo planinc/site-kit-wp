@@ -45,16 +45,5 @@ jobs:
               with:
                   node-version-file: '.nvmrc'
                   cache: 'npm'
-            - name: npm install
-              run: npm ci
-            - name: Run Backstopjs
-              run: npm run test:visualtest
-            - name: Upload artifacts
-              uses: actions/upload-artifact@v2
-              if: failure()
-              with:
-                  name: vrt-report
-                  path: |
-                      tests/backstop/html_report
-                      tests/backstop/reference
-                      tests/backstop/tests
+            - name: Test
+              run: echo woo
