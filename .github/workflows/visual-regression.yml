@@ -1,32 +1,31 @@
 name: Visual Regression Testing
 
 on:
-    workflow_dispatch
-    # pull_request:
-    # branches:
-    #   - main
-    #   - develop
-    #   - 'feature/**'
-    # # Only run if CSS/JS/MD-related files changed.
-    # paths:
-    #   - '.github/workflows/visual-regression.yml'
-    #   - 'assets/**'
-    #   - '!assets/**/__tests__/**/*.js'
-    #   - '!assets/**/test/*.js'
-    #   - '!assets/**/*.test.js'
-    #   - '**.stories.js'
-    #   - 'tests/backstop/**'
-    #   - '.storybook/**'
-    #   - '**.scss'
-    #   - '.nvmrc'
-    #   - '**/package.json'
-    #   - 'package-lock.json'
-    #   - 'src/tests/backstop/config.js'
-    # types:
-    #   - opened
-    #   - reopened
-    #   - synchronize
-    #   - ready_for_review
+    pull_request:
+    branches:
+        - main
+        - develop
+        - 'feature/**'
+    # Only run if CSS/JS/MD-related files changed.
+    paths:
+        - '.github/workflows/visual-regression.yml'
+        - 'assets/**'
+        - '!assets/**/__tests__/**/*.js'
+        - '!assets/**/test/*.js'
+        - '!assets/**/*.test.js'
+        - '**.stories.js'
+        - 'tests/backstop/**'
+        - '.storybook/**'
+        - '**.scss'
+        - '.nvmrc'
+        - '**/package.json'
+        - 'package-lock.json'
+        - 'src/tests/backstop/config.js'
+    types:
+        - opened
+        - reopened
+        - synchronize
+        - ready_for_review
 
 concurrency:
     group: visual-regression-${{ github.ref }}
