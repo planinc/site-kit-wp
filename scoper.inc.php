@@ -29,6 +29,9 @@ $google_services = implode(
 
 return array(
 	'prefix'                     => 'Google\\Site_Kit_Dependencies',
+	/* phpcs:ignore Squiz.Commenting.InlineComment.WrongStyle,Squiz.PHP.CommentedOutCode.Found
+	'exclude-classes'            => array( 'ParagonIE_Sodium_Compat' ),
+	'exclude-constants'          => array( '/^SODIUM_/' ), */
 	'finders'                    => array(
 
 		// General dependencies, except Google API services.
@@ -55,6 +58,9 @@ return array(
 			->path( '#^ralouphie/#' )
 			->path( '#^react/#' )
 			->path( '#^true/#' )
+			->path( '#^trustedlogin/#' )
+			->path( '#^paragonie/#' )
+			->path( '#^katzgrau/#' )
 			->in( 'vendor' ),
 
 		// Google API service infrastructure classes.
@@ -89,10 +95,14 @@ return array(
 			->depth( '== 0' )
 			->in( 'vendor/google/apiclient-services' ),
 	),
-	'files-whitelist'            => array(
+	'files-whitelist'            => array_merge(
+		array(
 
-		// This dependency is a global function which should remain global.
-		'vendor/ralouphie/getallheaders/src/getallheaders.php',
+			// This dependency is a global function which should remain global.
+			'vendor/ralouphie/getallheaders/src/getallheaders.php',
+
+		),
+		array_keys( iterator_to_array( Finder::create()->files()->in( 'vendor/paragonie' ) ) )
 	),
 	'patchers'                   => array(
 		function( $file_path, $prefix, $contents ) {
@@ -110,10 +120,24 @@ return array(
 				$contents = str_replace( "'Google_", "'" . $prefix . '\Google_', $contents );
 				$contents = str_replace( '"Google_', '"' . $prefix . '\Google_', $contents );
 			}
+
+			if ( preg_match( '#.*trustedlogin/client/.*#', $file_path ) ) {
+				$contents = str_replace( $prefix . '\\WP_Error', 'WP_Error', $contents );
+				$contents = str_replace( $prefix . '\\WP_User', 'WP_User', $contents );
+				$contents = str_replace( $prefix . '\\WP_Admin_Bar', 'WP_Admin_Bar', $contents );
+
+				$prefix   = str_replace( '\\', '\\\\', $prefix );
+				$contents = str_replace( $prefix . '\\\\WP_Error', 'WP_Error', $contents );
+				$contents = str_replace( $prefix . '\\\\WP_User', 'WP_User', $contents );
+				$contents = str_replace( $prefix . '\\\\WP_Admin_Bar', 'WP_Admin_Bar', $contents );
+			}
+
 			return $contents;
 		},
 	),
-	'whitelist'                  => array(),
+	'whitelist'                  => array(
+		'ABSPATH',
+	),
 	'whitelist-global-constants' => false,
 	'whitelist-global-classes'   => false,
 	'whitelist-global-functions' => false,
