@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e5be317b99b0ccdcf177ec9c42bac939",
+    "content-hash": "faf5f5e55fed9775226c506a1db3d34e",
     "packages": [
         {
             "name": "firebase/php-jwt",
@@ -177,6 +177,25 @@
                 "source": "https://github.com/googleapis/google-api-php-client-services/tree/v0.277.0"
             },
             "time": "2022-12-05T01:04:16+00:00"
+        },
+        {
+            "name": "google/apiclient-services-google-ads",
+            "version": "dev-develop",
+            "dist": {
+                "type": "path",
+                "url": "packages/google-ads",
+                "reference": "12f50193a6284e87e53973b26236f92e30802190"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "GoogleAds.php"
+                ]
+            },
+            "transport-options": {
+                "symlink": false,
+                "relative": true
+            }
         },
         {
             "name": "google/auth",
@@ -3493,6 +3512,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
+        "google/apiclient-services-google-ads": 20,
         "roave/security-advisories": 20
     },
     "prefer-stable": false,

@@ -19,6 +19,7 @@ use Google\Site_Kit\Core\Storage\User_Options;
 use Google\Site_Kit\Core\Authentication\Authentication;
 use Google\Site_Kit\Core\Util\Feature_Flags;
 use Google\Site_Kit\Core\Util\Method_Proxy_Trait;
+use Google\Site_Kit\Modules\Ads;
 use Google\Site_Kit\Modules\AdSense;
 use Google\Site_Kit\Modules\Analytics;
 use Google\Site_Kit\Modules\Analytics_4;
@@ -146,6 +147,7 @@ final class Modules {
 		Tag_Manager::MODULE_SLUG        => Tag_Manager::class,
 		AdSense::MODULE_SLUG            => AdSense::class,
 		PageSpeed_Insights::MODULE_SLUG => PageSpeed_Insights::class,
+		Ads::MODULE_SLUG => Ads::class,
 	);
 
 	/**

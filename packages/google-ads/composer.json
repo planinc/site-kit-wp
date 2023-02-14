@@ -1,0 +1,7 @@
+{
+    "name": "google/apiclient-services-google-ads",
+    "require": {},
+    "autoload": {
+      "files": ["GoogleAds.php"]
+    }
+}

@@ -88,6 +88,12 @@ return array(
 			->name( '#^autoload.php$#' )
 			->depth( '== 0' )
 			->in( 'vendor/google/apiclient-services' ),
+		Finder::create()
+			->files()
+			->ignoreVCS( true )
+			->name( '#.php$#' )
+			->depth( '== 0' )
+			->in( 'vendor/google/apiclient-services-google-ads' ),
 	),
 	'files-whitelist'            => array(
 
