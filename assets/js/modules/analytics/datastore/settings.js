@@ -91,7 +91,10 @@ export async function submitChanges( registry ) {
 	const { select, dispatch } = registry;
 
 	let propertyID = select( MODULES_ANALYTICS ).getPropertyID();
-	if ( propertyID === PROPERTY_CREATE ) {
+	if (
+		! isFeatureEnabled( 'ga4Reporting' ) &&
+		propertyID === PROPERTY_CREATE
+	) {
 		const accountID = select( MODULES_ANALYTICS ).getAccountID();
 		const { response: property, error } = await dispatch(
 			MODULES_ANALYTICS
@@ -110,7 +113,10 @@ export async function submitChanges( registry ) {
 	}
 
 	const profileID = select( MODULES_ANALYTICS ).getProfileID();
-	if ( profileID === PROFILE_CREATE ) {
+	if (
+		! isFeatureEnabled( 'ga4Reporting' ) &&
+		profileID === PROFILE_CREATE
+	) {
 		const profileName = select( CORE_FORMS ).getValue(
 			FORM_SETUP,
 			'profileName'
@@ -195,14 +201,37 @@ export function validateCanSubmitChanges( select ) {
 		isValidAccountID( getAccountID() ),
 		INVARIANT_INVALID_ACCOUNT_ID
 	);
-	invariant(
-		isValidPropertySelection( getPropertyID() ),
-		INVARIANT_INVALID_PROPERTY_SELECTION
-	);
-	invariant(
-		isValidProfileSelection( getProfileID() ),
-		INVARIANT_INVALID_PROFILE_SELECTION
-	);
+
+	// Do not require selecting a UA property and profile anymore
+	if ( ! isFeatureEnabled( 'ga4Reporting' ) ) {
+		invariant(
+			isValidPropertySelection( getPropertyID() ),
+			INVARIANT_INVALID_PROPERTY_SELECTION
+		);
+
+		invariant(
+			isValidProfileSelection( getProfileID() ),
+			INVARIANT_INVALID_PROFILE_SELECTION
+		);
+
+		if ( getProfileID() === PROFILE_CREATE ) {
+			const profileName = select( CORE_FORMS ).getValue(
+				FORM_SETUP,
+				'profileName'
+			);
+			invariant(
+				isValidProfileName( profileName ),
+				INVARIANT_INVALID_PROFILE_NAME
+			);
+		}
+
+		// If the property ID is valid (non-create) the internal ID must be valid as well.
+		invariant(
+			! isValidPropertyID( getPropertyID() ) ||
+				isValidInternalWebPropertyID( getInternalWebPropertyID() ),
+			INVARIANT_INVALID_INTERNAL_PROPERTY_ID
+		);
+	}
 
 	if ( getAdsConversionID() ) {
 		invariant(
@@ -210,24 +239,6 @@ export function validateCanSubmitChanges( select ) {
 			INVARIANT_INVALID_CONVERSION_ID
 		);
 	}
-
-	if ( getProfileID() === PROFILE_CREATE ) {
-		const profileName = select( CORE_FORMS ).getValue(
-			FORM_SETUP,
-			'profileName'
-		);
-		invariant(
-			isValidProfileName( profileName ),
-			INVARIANT_INVALID_PROFILE_NAME
-		);
-	}
-
-	// If the property ID is valid (non-create) the internal ID must be valid as well.
-	invariant(
-		! isValidPropertyID( getPropertyID() ) ||
-			isValidInternalWebPropertyID( getInternalWebPropertyID() ),
-		INVARIANT_INVALID_INTERNAL_PROPERTY_ID
-	);
 
 	if ( select( MODULES_ANALYTICS ).canUseGA4Controls() ) {
 		select( MODULES_ANALYTICS_4 ).__dangerousCanSubmitChanges();
