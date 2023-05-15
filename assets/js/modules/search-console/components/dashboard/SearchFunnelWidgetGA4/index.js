@@ -25,7 +25,7 @@ import { identity } from 'lodash';
 /**
  * WordPress dependencies
  */
-import { useState } from '@wordpress/element';
+import { useState, Fragment } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { isURL } from '@wordpress/url';
 
@@ -248,15 +248,19 @@ const SearchFunnelWidgetGA4 = ( { Widget, WidgetReportError } ) => {
 		);
 	} );
 	const ga4OverviewData = useInViewSelect( ( select ) => {
-		if (
-			! isGA4Connected ||
-			! canViewSharedAnalytics4 ||
-			showRecoverableAnalytics
-		) {
-			return null;
-		}
+		// if (
+		// 	! isGA4Connected ||
+		// 	! canViewSharedAnalytics4 ||
+		// 	showRecoverableAnalytics
+		// ) {
+		// 	return null;
+		// }
 
-		return select( MODULES_ANALYTICS_4 ).getReport( ga4OverviewArgs );
+		// return select( MODULES_ANALYTICS_4 ).getReport( ga4OverviewArgs );
+
+		return select( MODULES_ANALYTICS_4 ).getSearchFunnelOverviewReport(
+			viewOnly
+		);
 	} );
 	const ga4OverviewError = useSelect( ( select ) => {
 		if ( ! isGA4Connected || showRecoverableAnalytics ) {
@@ -367,22 +371,32 @@ const SearchFunnelWidgetGA4 = ( { Widget, WidgetReportError } ) => {
 		);
 	}
 
-	if (
+	const isLoading =
+		// true || // TODO: Remove this line once the loading state is fixed.
 		searchConsoleLoading ||
 		ga4OverviewLoading ||
 		ga4StatsLoading ||
 		ga4VisitorsOverviewAndStatsLoading ||
 		ga4ConversionsLoading ||
 		isGA4GatheringData === undefined ||
-		isSearchConsoleGatheringData === undefined
-	) {
-		return (
-			<Widget Header={ Header } Footer={ WidgetFooter } noPadding>
-				<PreviewBlock width="100%" height="190px" padding />
-				<PreviewBlock width="100%" height="270px" padding />
-			</Widget>
-		);
-	}
+		isSearchConsoleGatheringData === undefined;
+
+	// if (
+	// 	searchConsoleLoading ||
+	// 	ga4OverviewLoading ||
+	// 	ga4StatsLoading ||
+	// 	ga4VisitorsOverviewAndStatsLoading ||
+	// 	ga4ConversionsLoading ||
+	// 	isGA4GatheringData === undefined ||
+	// 	isSearchConsoleGatheringData === undefined
+	// ) {
+	// 	return (
+	// 		<Widget Header={ Header } Footer={ WidgetFooter } noPadding>
+	// 			<PreviewBlock width="100%" height="190px" padding />
+	// 			<PreviewBlock width="100%" height="270px" padding />
+	// 		</Widget>
+	// 	);
+	// }
 
 	return (
 		<Widget noPadding Header={ Header } Footer={ WidgetFooter }>
@@ -394,6 +408,7 @@ const SearchFunnelWidgetGA4 = ( { Widget, WidgetReportError } ) => {
 				handleStatsSelection={ setSelectedStats }
 				selectedStats={ selectedStats }
 				dateRangeLength={ dateRangeLength }
+				isLoading={ isLoading }
 				error={
 					ga4OverviewError ||
 					ga4StatsError ||
@@ -404,82 +419,99 @@ const SearchFunnelWidgetGA4 = ( { Widget, WidgetReportError } ) => {
 				showRecoverableAnalytics={ showRecoverableAnalytics }
 			/>
 
-			{ ( selectedStats === 0 || selectedStats === 1 ) && (
-				<SearchConsoleStats
-					data={ searchConsoleData }
-					dateRangeLength={ dateRangeLength }
-					selectedStats={ selectedStats }
-					metrics={ SearchFunnelWidgetGA4.metrics }
-					gatheringData={ isSearchConsoleGatheringData }
-				/>
+			{ isLoading && (
+				<PreviewBlock width="100%" height="270px" padding />
 			) }
 
-			{ canViewSharedAnalytics4 &&
-				( ! isGA4Active || ! isGA4Connected ) &&
-				BREAKPOINT_SMALL === breakpoint && (
-					<Grid>
-						<Row>
-							<Cell>
-								<ActivateAnalyticsCTA
-									title={ __(
-										'Conversions completed',
+			{ ! isLoading && (
+				<Fragment>
+					{ ( selectedStats === 0 || selectedStats === 1 ) && (
+						<SearchConsoleStats
+							data={ searchConsoleData }
+							dateRangeLength={ dateRangeLength }
+							selectedStats={ selectedStats }
+							metrics={ SearchFunnelWidgetGA4.metrics }
+							gatheringData={ isSearchConsoleGatheringData }
+						/>
+					) }
+
+					{ canViewSharedAnalytics4 &&
+						( ! isGA4Active || ! isGA4Connected ) &&
+						BREAKPOINT_SMALL === breakpoint && (
+							<Grid>
+								<Row>
+									<Cell>
+										<ActivateAnalyticsCTA
+											title={ __(
+												'Conversions completed',
+												'google-site-kit'
+											) }
+										/>
+									</Cell>
+								</Row>
+							</Grid>
+						) }
+
+					{ selectedStats === 2 && (
+						<AnalyticsStats
+							data={ ga4VisitorsOverviewAndStatsData }
+							dateRangeLength={ dateRangeLength }
+							selectedStats={ 0 }
+							metrics={ SearchFunnelWidgetGA4.metrics }
+							dataLabels={ [
+								__( 'Unique Visitors', 'google-site-kit' ),
+							] }
+							tooltipDataFormats={ [
+								( x ) => parseFloat( x ).toLocaleString(),
+							] }
+							statsColor={
+								SearchFunnelWidgetGA4.metrics[ selectedStats ]
+									.color
+							}
+							gatheringData={ isGA4GatheringData }
+							moduleSlug="analytics-4"
+						/>
+					) }
+
+					{ canViewSharedAnalytics4 &&
+						( selectedStats === 3 || selectedStats === 4 ) && (
+							<AnalyticsStats
+								data={ ga4StatsData }
+								dateRangeLength={ dateRangeLength }
+								// The selected stats order defined in the parent component does not match the order from the API.
+								selectedStats={ selectedStats - 3 }
+								metrics={ SearchFunnelWidgetGA4.metrics }
+								dataLabels={ [
+									__( 'Conversions', 'google-site-kit' ),
+									__(
+										'Engagement Rate %',
 										'google-site-kit'
-									) }
-								/>
-							</Cell>
-						</Row>
-					</Grid>
-				) }
-
-			{ selectedStats === 2 && (
-				<AnalyticsStats
-					data={ ga4VisitorsOverviewAndStatsData }
-					dateRangeLength={ dateRangeLength }
-					selectedStats={ 0 }
-					metrics={ SearchFunnelWidgetGA4.metrics }
-					dataLabels={ [
-						__( 'Unique Visitors', 'google-site-kit' ),
-					] }
-					tooltipDataFormats={ [
-						( x ) => parseFloat( x ).toLocaleString(),
-					] }
-					statsColor={
-						SearchFunnelWidgetGA4.metrics[ selectedStats ].color
-					}
-					gatheringData={ isGA4GatheringData }
-					moduleSlug="analytics-4"
-				/>
+									),
+								] }
+								tooltipDataFormats={ [
+									( x ) => parseFloat( x ).toLocaleString(),
+									( x ) =>
+										numFmt( x / 100, {
+											style: 'percent',
+											signDisplay: 'never',
+											maximumFractionDigits: 2,
+										} ),
+								] }
+								chartDataFormats={ [
+									identity,
+									( x ) => x * 100,
+								] }
+								statsColor={
+									SearchFunnelWidgetGA4.metrics[
+										selectedStats
+									].color
+								}
+								gatheringData={ isGA4GatheringData }
+								moduleSlug="analytics-4"
+							/>
+						) }
+				</Fragment>
 			) }
-
-			{ canViewSharedAnalytics4 &&
-				( selectedStats === 3 || selectedStats === 4 ) && (
-					<AnalyticsStats
-						data={ ga4StatsData }
-						dateRangeLength={ dateRangeLength }
-						// The selected stats order defined in the parent component does not match the order from the API.
-						selectedStats={ selectedStats - 3 }
-						metrics={ SearchFunnelWidgetGA4.metrics }
-						dataLabels={ [
-							__( 'Conversions', 'google-site-kit' ),
-							__( 'Engagement Rate %', 'google-site-kit' ),
-						] }
-						tooltipDataFormats={ [
-							( x ) => parseFloat( x ).toLocaleString(),
-							( x ) =>
-								numFmt( x / 100, {
-									style: 'percent',
-									signDisplay: 'never',
-									maximumFractionDigits: 2,
-								} ),
-						] }
-						chartDataFormats={ [ identity, ( x ) => x * 100 ] }
-						statsColor={
-							SearchFunnelWidgetGA4.metrics[ selectedStats ].color
-						}
-						gatheringData={ isGA4GatheringData }
-						moduleSlug="analytics-4"
-					/>
-				) }
 		</Widget>
 	);
 };
