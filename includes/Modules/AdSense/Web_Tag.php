@@ -27,6 +27,82 @@ class Web_Tag extends Module_Web_Tag {
 	use Method_Proxy_Trait, Tag_With_DNS_Prefetch_Trait;
 
 	/**
+	 * Whether or not to use ad blocker detection snippet.
+	 *
+	 * @since n.e.x.t
+	 * @var bool
+	 */
+	private $use_ad_blocker_detection_snippet;
+
+	/**
+	 * Whether or not to use ad blocker detection error snippet.
+	 *
+	 * @since n.e.x.t
+	 * @var bool
+	 */
+	private $use_ad_blocker_detection_error_snippet;
+
+	/**
+	 * Recovery tag HTML.
+	 *
+	 * @since n.e.x.t
+	 * @var string
+	 */
+	private $recovery_tag_html;
+
+	/**
+	 * Error protection HTML.
+	 *
+	 * @since n.e.x.t
+	 * @var string
+	 */
+	private $error_protection_html;
+
+	/**
+	 * Sets whether or not to use ad blocker detection snippet.
+	 *
+	 * @since n.e.x.t
+	 *
+	 * @param bool $use_ad_blocker_detection_snippet Whether or not to use ad blocker detection snippet.
+	 */
+	public function set_use_ad_blocker_detection_snippet( $use_ad_blocker_detection_snippet ) {
+		$this->use_ad_blocker_detection_snippet = (bool) $use_ad_blocker_detection_snippet;
+	}
+
+	/**
+	 * Sets whether or not to use ad blocker detection error snippet.
+	 *
+	 * @since n.e.x.t
+	 *
+	 * @param bool $use_ad_blocker_detection_error_snippet Whether or not to use ad blocker detection error snippet.
+	 */
+	public function set_use_ad_blocker_detection_error_snippet( $use_ad_blocker_detection_error_snippet ) {
+		$this->use_ad_blocker_detection_error_snippet = (bool) $use_ad_blocker_detection_error_snippet;
+	}
+
+	/**
+	 * Sets the recovery tag HTML.
+	 *
+	 * @since n.e.x.t
+	 *
+	 * @param string $recovery_tag_html Recovery tag HTML.
+	 */
+	public function set_recovery_tag_html( $recovery_tag_html ) {
+		$this->recovery_tag_html = $recovery_tag_html;
+	}
+
+	/**
+	 * Sets the error protection HTML.
+	 *
+	 * @since n.e.x.t
+	 *
+	 * @param string $error_protection_html Error protection HTML.
+	 */
+	public function set_error_protection_html( $error_protection_html ) {
+		$this->error_protection_html = $error_protection_html;
+	}
+
+	/**
 	 * Registers tag hooks.
 	 *
 	 * @since 1.24.0
@@ -65,7 +141,8 @@ class Web_Tag extends Module_Web_Tag {
 			'crossorigin' => 'anonymous',
 		);
 
-		$adsense_attributes = $this->get_tag_blocked_on_consent_attribute_array();
+		$adsense_consent_attributes = $this->get_tag_blocked_on_consent_attribute_array();
+		$adsense_attributes         = $adsense_consent_attributes;
 
 		$auto_ads_opt = array();
 
@@ -94,6 +171,21 @@ class Web_Tag extends Module_Web_Tag {
 		printf( "\n<!-- %s -->\n", esc_html__( 'Google AdSense snippet added by Site Kit', 'google-site-kit' ) );
 		BC_Functions::wp_print_script_tag( array_merge( $adsense_script_attributes, $adsense_attributes ) );
 		printf( "\n<!-- %s -->\n", esc_html__( 'End Google AdSense snippet added by Site Kit', 'google-site-kit' ) );
+
+		if ( $this->use_ad_blocker_detection_snippet ) {
+			printf( "\n<!-- %s -->\n", esc_html__( 'Ad blocker detection snippet added by Site Kit', 'google-site-kit' ) );
+			BC_Functions::wp_print_inline_script_tag( $this->recovery_tag_html, $adsense_consent_attributes );
+			printf( "\n<!-- %s -->\n", esc_html__( 'End ad blocker detection snippet added by Site Kit', 'google-site-kit' ) );
+
+			if ( $this->use_ad_blocker_detection_error_snippet ) {
+				printf( "\n<!-- %s -->\n", esc_html__( 'Ad blocking recovery error protection snippet added by Site Kit', 'google-site-kit' ) );
+				BC_Functions::wp_print_inline_script_tag(
+					$this->error_protection_html,
+					$adsense_consent_attributes
+				);
+				printf( "\n<!-- %s -->\n", esc_html__( 'End ad blocking recovery error protection snippet added by Site Kit', 'google-site-kit' ) );
+			}
+		}
 	}
 
 }
