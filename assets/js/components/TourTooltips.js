@@ -86,6 +86,9 @@ export const GA_ACTIONS = {
 	COMPLETE: 'feature_tooltip_complete',
 };
 
+// This will be a WeakRef pointing to the last focused element, to avoid memory leaks from holding a reference to a DOM node.
+let lastFocusedElement = null;
+
 export default function TourTooltips( {
 	steps,
 	tourID,
@@ -146,13 +149,29 @@ export default function TourTooltips( {
 				? gaEventCategory( viewContext )
 				: gaEventCategory;
 
+		// eslint-disable-next-line no-console
+		console.log( 'TOOLTIP', index, action, lifecycle, size, status, type );
+
 		if ( type === EVENTS.TOOLTIP && lifecycle === LIFECYCLE.TOOLTIP ) {
 			trackEvent( eventCategory, GA_ACTIONS.VIEW, stepNumber );
+			// eslint-disable-next-line no-console
+			console.log( 'TOOLTIP VIEW', document.activeElement );
+			// Store a reference to the currently focused element.
+			lastFocusedElement = new global.WeakRef( document.activeElement );
 		} else if (
 			action === ACTIONS.CLOSE &&
 			lifecycle === LIFECYCLE.COMPLETE
 		) {
 			trackEvent( eventCategory, GA_ACTIONS.DISMISS, stepNumber );
+			// eslint-disable-next-line no-console
+			console.log( 'TOOLTIP DISMISS' );
+			// Restore focus to the previously focused element.
+			if ( lastFocusedElement ) {
+				const element = lastFocusedElement.deref();
+				if ( document.contains( element ) ) {
+					element.focus();
+				}
+			}
 		} else if (
 			action === ACTIONS.NEXT &&
 			status === STATUS.FINISHED &&
