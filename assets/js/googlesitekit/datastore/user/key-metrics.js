@@ -400,7 +400,7 @@ const baseSelectors = {
 
 				if (
 					! isAuthenticated &&
-					module.shareable &&
+					module?.shareable &&
 					! canViewSharedModule( slug )
 				) {
 					return false;
