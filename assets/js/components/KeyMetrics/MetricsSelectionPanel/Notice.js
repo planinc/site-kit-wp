@@ -20,6 +20,8 @@
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
+import { usePrevious } from '@wordpress/compose';
+import { useEffect, useRef } from '@wordpress/element';
 
 /**
  * Internal dependencies
@@ -33,6 +35,22 @@ import { KEY_METRICS_WIDGETS } from '../key-metrics-widgets';
 import { EDIT_SCOPE as ANALYTICS_EDIT_SCOPE } from '../../../modules/analytics/datastore/constants';
 import { useFeature } from '../../../hooks/useFeature';
 const { useSelect } = Data;
+
+// Taken from https://stackoverflow.com/a/59070274
+function overlaps( el1, el2 ) {
+	const rect1 = el1.getBoundingClientRect();
+	const rect2 = el2.getBoundingClientRect();
+	if (
+		rect1.bottom < rect2.top || // 1a
+		rect2.bottom < rect1.top || // 1b
+		rect1.right < rect2.left || // 2a
+		rect2.right < rect1.left
+	) {
+		// 2b
+		return false;
+	}
+	return true;
+}
 
 export default function Notice() {
 	const newsKeyMetricsEnabled = useFeature( 'newsKeyMetrics' );
@@ -64,6 +82,26 @@ export default function Notice() {
 		select( CORE_USER ).hasScope( ANALYTICS_EDIT_SCOPE )
 	);
 
+	const previousHasMissingCustomDimensions = usePrevious(
+		!! hasMissingCustomDimensions
+	);
+	const noticeRef = useRef();
+
+	useEffect( () => {
+		if (
+			hasMissingCustomDimensions &&
+			previousHasMissingCustomDimensions === false
+		) {
+			const currentFocusedElement = document.activeElement;
+			if (
+				currentFocusedElement &&
+				overlaps( noticeRef.current, currentFocusedElement )
+			) {
+				currentFocusedElement.scrollIntoView( { behavior: 'smooth' } );
+			}
+		}
+	}, [ hasMissingCustomDimensions, previousHasMissingCustomDimensions ] );
+
 	if ( ! hasMissingCustomDimensions ) {
 		return null;
 	}
@@ -79,7 +117,10 @@ export default function Notice() {
 		  );
 
 	return (
-		<div className="googlesitekit-km-selection-panel-notice">
+		<div
+			className="googlesitekit-km-selection-panel-notice"
+			ref={ noticeRef }
+		>
 			<p>{ customDimensionMessage }</p>
 		</div>
 	);
