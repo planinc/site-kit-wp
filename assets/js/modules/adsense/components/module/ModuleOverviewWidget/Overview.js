@@ -53,6 +53,7 @@ const Overview = ( {
 						className="googlesitekit-data-block--page-rpm googlesitekit-data-block--button-1"
 						title={ metrics[ headers[ 0 ].name ] }
 						datapoint={ totals?.cells[ 0 ].value || 0 }
+						// datapoint={ 123456789.23 }
 						datapointUnit={ headers[ 0 ]?.currencyCode }
 						change={ calculateChange(
 							previousTotals?.cells[ 0 ].value || 0,

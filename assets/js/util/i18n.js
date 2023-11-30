@@ -440,6 +440,58 @@ export const numberFormat = ( number, options = {} ) => {
 	}
 };
 
+export function getCurrencyPattern( currencyCode, locale = getLocale() ) {
+	const formatter = Intl.NumberFormat( locale, {
+		style: 'currency',
+		currency: currencyCode,
+	} );
+
+	// See https://stackoverflow.com/questions/18204678/how-to-format-numbers-in-google-api-linechart for a bit more detail than the API docs provide.
+
+	// 1,000 should be sufficient to determine the grouping and decimal separators for most locales, but we use 1,000,000 to accommodate any outliers.
+	const parts = formatter.formatToParts( 1000000 );
+
+	// We'll return a pattern along these lines: '$ #,###,##0.00'. Note how '#' is used for a non-required digit, and '0' is used for a required digit.
+
+	const currencyPattern = parts.reduce( ( pattern, part ) => {
+		const { value } = part;
+
+		switch ( part.type ) {
+			case 'group':
+				// The group and decimal separators will be replaced with the locale-specific versions by the chart, see https://groups.google.com/g/google-visualization-api/c/hBF9daxe8qY/m/_aPk3EfQLgAJ
+				return pattern + ',';
+			case 'decimal':
+				return pattern + '.';
+			case 'currency':
+				return pattern + value;
+			case 'literal':
+				// TODO: Sanitize these literal values to avoid a potential 'Malformed pattern' error in the chart?
+				return pattern + value;
+			case 'integer':
+				const integerPattern = value.replace( /\d/g, '#' );
+				const isLastIntegerGroup =
+					parts.findLast( ( { type } ) => 'integer' === type ) ===
+					part;
+
+				return (
+					pattern +
+					( isLastIntegerGroup
+						? integerPattern.replace( /#$/, '0' )
+						: integerPattern )
+				);
+			case 'fraction':
+				return pattern + value.replace( /\d/g, '0' );
+			default:
+				return pattern;
+		}
+	}, '' );
+
+	// eslint-disable-next-line no-console
+	console.log( { locale, parts, currencyPattern } );
+
+	return currencyPattern;
+}
+
 /**
  * Flattens an array of strings into a string using the JS Internationalization List Format API.
  *

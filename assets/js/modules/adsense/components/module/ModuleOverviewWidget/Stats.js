@@ -27,10 +27,17 @@ import PropTypes from 'prop-types';
 import { getSiteStatsDataForGoogleChart, isZeroReport } from '../../../util';
 import { Grid, Row, Cell } from '../../../../../material-components';
 import GoogleChart from '../../../../../components/GoogleChart';
+import { getCurrencyPattern } from '../../../../../util';
+import { cloneDeep } from 'lodash';
 
 export default function Stats( props ) {
-	const { metrics, currentRangeData, previousRangeData, selectedStats } =
-		props;
+	let { metrics, currentRangeData, previousRangeData, selectedStats } = props;
+
+	currentRangeData = cloneDeep( currentRangeData );
+	// currentRangeData.rows[ 0 ].cells[ 1 ].value = '1000000'; // Test some large numbers.
+	// currentRangeData.rows.forEach( ( row ) => {
+	// 	row.cells[ 1 ].value /= 10; // Test some small numbers.
+	// } );
 
 	const dataMap = getSiteStatsDataForGoogleChart(
 		currentRangeData,
@@ -44,11 +51,19 @@ export default function Stats( props ) {
 	const colors = [ '#6380b8', '#bed4ff', '#5c9271', '#6e48ab' ];
 	const formats = {
 		METRIC_TALLY: undefined,
-		METRIC_CURRENCY: 'currency',
+		// METRIC_CURRENCY: 'currency',
 		METRIC_RATIO: 'percent',
 		METRIC_DECIMAL: 'decimal',
 		METRIC_MILLISECONDS: undefined,
 	};
+
+	function getFormat( { type, currencyCode } = {} ) {
+		if ( type === 'METRIC_CURRENCY' ) {
+			return getCurrencyPattern( currencyCode );
+			// return '#,##0.00 €';
+		}
+		return formats[ type ];
+	}
 
 	const options = {
 		curveType: 'function',
@@ -78,9 +93,7 @@ export default function Stats( props ) {
 			ticks: dates,
 		},
 		vAxis: {
-			format: formats[
-				currentRangeData.headers[ selectedStats + 1 ].type
-			],
+			format: getFormat( currentRangeData.headers[ selectedStats + 1 ] ),
 			gridlines: {
 				color: '#eee',
 			},

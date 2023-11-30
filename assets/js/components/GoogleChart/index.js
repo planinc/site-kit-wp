@@ -59,6 +59,7 @@ import {
 	getChartOptions,
 } from './utils';
 import { stringToDate, getDateString } from '../../util/date-range';
+import { getLocale } from '../../util';
 const { useDispatch, useSelect } = Data;
 
 export default function GoogleChart( props ) {
@@ -431,6 +432,7 @@ export default function GoogleChart( props ) {
 					} }
 					width={ width }
 					options={ chartOptions }
+					chartLanguage={ getLocale() }
 					{ ...otherProps }
 				/>
 				{ gatheringData && isChartLoaded && (
