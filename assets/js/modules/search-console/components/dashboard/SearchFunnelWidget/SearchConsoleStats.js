@@ -54,7 +54,7 @@ export default function SearchConsoleStats( props ) {
 	const options = {
 		...SearchConsoleStats.chartOptions,
 		hAxis: {
-			format: 'M/d/yy',
+			format: 'MMM d',
 			gridlines: {
 				color: '#fff',
 			},
@@ -63,6 +63,9 @@ export default function SearchConsoleStats( props ) {
 				fontSize: 12,
 			},
 			ticks: dates,
+			maxTextLines: 1,
+			minTextSpacing: 40,
+			// showTextEvery
 		},
 		series: {
 			0: {
