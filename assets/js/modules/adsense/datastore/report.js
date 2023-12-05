@@ -37,6 +37,8 @@ import {
 } from '../../../util/report-validation';
 import { validateDimensions, validateMetrics } from '../util/report-validation';
 
+const log = global.console.log;
+
 const fetchGetReportStore = createFetchStore( {
 	baseName: 'getReport',
 	controlCallback: ( { options } ) => {
@@ -94,6 +96,9 @@ const baseInitialState = {
 
 const baseResolvers = {
 	*getReport( options = {} ) {
+		log( '*getReport', {
+			options,
+		} );
 		const registry = yield Data.commonActions.getRegistry();
 		const existingReport = registry
 			.select( MODULES_ADSENSE )

@@ -35,21 +35,43 @@ import { useInView } from './useInView';
  *
  * @param {Function} mapSelect Selector to call when this selector's component is considered in-view.
  * @param {Array}    deps      Deps passed to `useInViewSelect`'s `deps` argument.
+ * @param {any}      message   Foo.
  * @return {*} The result of the selector if in-view; `undefined` if not in-view.
  */
-export const useInViewSelect = ( mapSelect, deps = [] ) => {
-	const isInView = useInView( { sticky: true } );
+export const useInViewSelect = ( mapSelect, deps = [], message ) => {
+	const isInView = useInView( { sticky: true }, message );
 	const latestSelectorResult = useRef();
 
-	const mapSelectCallback = useCallback( mapSelect, [ ...deps, mapSelect ] );
+	const log = message
+		? ( ...args ) => global.console.log( message, ...args )
+		: () => {};
+
+	const mapSelectCallback = useCallback(
+		( select ) => {
+			log( '>>>> CALLING mapSelect' );
+			return mapSelect( select );
+		},
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[ ...deps, mapSelect ]
+	);
+
+	log( {
+		isInView,
+	} );
 
 	const selectorResult = useSelect(
 		isInView
 			? mapSelectCallback
 			: () => {
+					// log( 'not in view' );
 					return undefined;
 			  }
 	);
+
+	log( {
+		latestSelectorResult: latestSelectorResult.current,
+		selectorResult,
+	} );
 
 	if ( isInView ) {
 		latestSelectorResult.current = selectorResult;

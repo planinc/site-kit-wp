@@ -44,6 +44,8 @@ import StatusMigration from './StatusMigration';
 import useViewOnly from '../../../../../hooks/useViewOnly';
 const { useSelect, useInViewSelect } = Data;
 
+const log = global.console.log;
+
 const ModuleOverviewWidget = ( { Widget, WidgetReportError } ) => {
 	const viewOnlyDashboard = useViewOnly();
 	const [ selectedStats, setSelectedStats ] = useState( 0 );
@@ -89,34 +91,62 @@ const ModuleOverviewWidget = ( { Widget, WidgetReportError } ) => {
 		dimensions: [ 'DATE' ],
 	};
 
-	const currentRangeData = useInViewSelect( ( select ) =>
-		select( MODULES_ADSENSE ).getReport( currentRangeArgs )
+	const currentRangeData = useInViewSelect(
+		( select ) => select( MODULES_ADSENSE ).getReport( currentRangeArgs ),
+		[],
+		'currenttRange'
 	);
-	const previousRangeData = useInViewSelect( ( select ) =>
-		select( MODULES_ADSENSE ).getReport( previousRangeArgs )
+	const previousRangeData = useInViewSelect(
+		( select ) => select( MODULES_ADSENSE ).getReport( previousRangeArgs ),
+		[],
+		'previousRange'
 	);
-	const currentRangeChartData = useInViewSelect( ( select ) =>
-		select( MODULES_ADSENSE ).getReport( currentRangeChartArgs )
-	);
-	const previousRangeChartData = useInViewSelect( ( select ) =>
-		select( MODULES_ADSENSE ).getReport( previousRangeChartArgs )
-	);
-
-	const loading = useSelect(
+	const currentRangeChartData = useInViewSelect(
 		( select ) =>
-			! select( MODULES_ADSENSE ).hasFinishedResolution( 'getReport', [
-				currentRangeArgs,
-			] ) ||
-			! select( MODULES_ADSENSE ).hasFinishedResolution( 'getReport', [
-				previousRangeArgs,
-			] ) ||
-			! select( MODULES_ADSENSE ).hasFinishedResolution( 'getReport', [
-				currentRangeChartArgs,
-			] ) ||
-			! select( MODULES_ADSENSE ).hasFinishedResolution( 'getReport', [
-				previousRangeChartArgs,
-			] )
+			select( MODULES_ADSENSE ).getReport( currentRangeChartArgs ),
+		[],
+		'currenttChart'
 	);
+	const previousRangeChartData = useInViewSelect(
+		( select ) =>
+			select( MODULES_ADSENSE ).getReport( previousRangeChartArgs ),
+		[],
+		'previousChart'
+	);
+	// const currentRangeData = undefined;
+	// const previousRangeData = undefined;
+	// const currentRangeChartData = undefined;
+	// const previousRangeChartData = undefined;
+
+	const [
+		hasFinishedResolutionCurrentRange,
+		hasFinishedResolutionPreviousRange,
+		hasFinishedResolutionCurrentRangeChart,
+		hasFinishedResolutionPreviousRangeChart,
+	] = useSelect( ( select ) => [
+		select( MODULES_ADSENSE ).hasFinishedResolution( 'getReport', [
+			currentRangeArgs,
+		] ),
+		select( MODULES_ADSENSE ).hasFinishedResolution( 'getReport', [
+			previousRangeArgs,
+		] ),
+		select( MODULES_ADSENSE ).hasFinishedResolution( 'getReport', [
+			currentRangeChartArgs,
+		] ),
+		select( MODULES_ADSENSE ).hasFinishedResolution( 'getReport', [
+			previousRangeChartArgs,
+		] ),
+	] );
+
+	const loading =
+		! hasFinishedResolutionCurrentRange ||
+		! hasFinishedResolutionPreviousRange ||
+		! hasFinishedResolutionCurrentRangeChart ||
+		! hasFinishedResolutionPreviousRangeChart;
+	// currentRangeData === undefined ||
+	// previousRangeData === undefined ||
+	// currentRangeChartData === undefined ||
+	// previousRangeChartData === undefined;
 
 	const errors = useSelect( ( select ) => [
 		...[
@@ -141,7 +171,20 @@ const ModuleOverviewWidget = ( { Widget, WidgetReportError } ) => {
 		],
 	] ).filter( Boolean );
 
+	log( 'ModuleOverviewWidget', {
+		loading,
+		hasFinishedResolutionCurrentRange,
+		hasFinishedResolutionPreviousRange,
+		hasFinishedResolutionCurrentRangeChart,
+		hasFinishedResolutionPreviousRangeChart,
+		currentRangeData,
+		previousRangeData,
+		currentRangeChartData,
+		previousRangeChartData,
+	} );
+
 	if ( loading ) {
+		log( 'ModuleOverviewWidget returning PreviewBlocks' );
 		return (
 			<Widget Header={ Header } Footer={ Footer } noPadding>
 				<PreviewBlock width="100%" height="190px" padding />
@@ -151,6 +194,7 @@ const ModuleOverviewWidget = ( { Widget, WidgetReportError } ) => {
 	}
 
 	if ( !! errors.length ) {
+		log( 'ModuleOverviewWidget returning WidgetReportError', { errors } );
 		return (
 			<Widget Header={ Header } Footer={ Footer }>
 				<WidgetReportError moduleSlug="adsense" error={ errors } />
@@ -158,6 +202,7 @@ const ModuleOverviewWidget = ( { Widget, WidgetReportError } ) => {
 		);
 	}
 
+	log( 'ModuleOverviewWidget returning Overview etc', { currentRangeData } );
 	return (
 		<Widget noPadding Header={ Header } Footer={ Footer }>
 			{ ! viewOnlyDashboard && legacyStatus && <StatusMigration /> }

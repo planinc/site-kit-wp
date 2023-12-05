@@ -67,6 +67,8 @@ function DashboardAllTrafficWidgetGA4( props ) {
 		( select ) =>
 			canViewSharedAnalytics4 &&
 			select( MODULES_ANALYTICS_4 ).isGatheringData()
+		// [],
+		// 'ALL_TRAFFIC'
 	);
 	const gatheringDataLoaded = isGatheringData !== undefined;
 

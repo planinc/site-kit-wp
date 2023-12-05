@@ -35,6 +35,8 @@ import { useContext, useEffect, useState } from '@wordpress/element';
 import InViewContext from '../components/InViewProvider/InViewContext';
 import { CORE_UI } from '../googlesitekit/datastore/ui/constants';
 
+const log = global.console.log;
+
 /**
  * Returns whether the nearest parent component tracking viewport detection is in-view.
  *
@@ -42,10 +44,15 @@ import { CORE_UI } from '../googlesitekit/datastore/ui/constants';
  *
  * @param {Object}  options        Optional. Options to pass to the request.
  * @param {boolean} options.sticky Set to `true` to always return `true` after the nearest viewport-detecting component has been in-view once. Defaults to `false`.
+ * @param {any}     message        Foo.
  * @return {boolean} `true` if the nearest parent component is in-view (or if `sticky` is `true`, if the component has ever been in-view); `false` if not..
  */
-export const useInView = ( { sticky = false } = {} ) => {
+export const useInView = ( { sticky = false } = {}, message ) => {
 	const inView = useContext( InViewContext );
+
+	if ( message ) {
+		log( '>inView', message, inView );
+	}
 
 	const [ hasBeenInViewOnce, setHasBeenInViewOnce ] = useState( false );
 

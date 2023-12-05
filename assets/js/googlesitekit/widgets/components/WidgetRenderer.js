@@ -65,9 +65,19 @@ const WidgetRenderer = ( { slug, OverrideComponent } ) => {
 		select( CORE_WIDGETS ).isWidgetPreloaded( slug )
 	);
 
+	const log = global.console.log;
+
 	if ( ! widget || widgetRecoverableModules === undefined ) {
+		log( 'returning WidgetNull', {
+			widget,
+			widgetRecoverableModules,
+			recoverableModules,
+			slug,
+		} );
 		return <WidgetNull />;
 	}
+
+	log( 'returning widget', { widget, widgetRecoverableModules, slug } );
 
 	const { Component, wrapWidget } = widget;
 
