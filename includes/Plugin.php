@@ -19,7 +19,7 @@ use Google\Site_Kit\Core\Util\Feature_Flags;
  */
 final class Plugin {
 
-	// Just a dummy change.
+	// Just a dummy change 2.
 
 	/**
 	 * The plugin context object.
