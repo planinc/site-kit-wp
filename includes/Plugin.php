@@ -213,7 +213,7 @@ final class Plugin {
 				( new Core\Dashboard_Sharing\Dashboard_Sharing( $this->context, $user_options ) )->register();
 				( new Core\Key_Metrics\Key_Metrics( $this->context, $user_options, $options ) )->register();
 				( new Core\Prompts\Prompts( $this->context, $user_options ) )->register();
-				( new Core\Tags\GTag( $this->context ) )->register();
+				( new Core\Tags\GTag() )->register();
 
 				// If a login is happening (runs after 'init'), update current user in dependency chain.
 				add_action(
