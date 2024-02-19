@@ -21,7 +21,7 @@ class Consent_Mode {
 					'ad_personalization' => 'denied',
 				),
 			),
-			'before'
+			'before' // Ensure the consent command is inlined before the gtag.js script.
 		);
 	}
 }
