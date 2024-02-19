@@ -36,10 +36,11 @@ class GTag {
 		);
 	}
 
-	public function add_command( $command, ...$parameters ) {
+	public function add_command( $command, $parameters, $position = 'after' ) {
 		$this->commands[] = array(
 			'command'    => $command,
 			'parameters' => $parameters,
+			'position'   => $position,
 		);
 	}
 
@@ -58,7 +59,8 @@ class GTag {
 		// phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
 		wp_enqueue_script( self::HANDLE, $gtag_src, false, null, false );
 		wp_script_add_data( self::HANDLE, 'script_execution', 'async' );
-		wp_add_inline_script( self::HANDLE, 'window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}' );
+
+		wp_add_inline_script( self::HANDLE, 'window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}', 'before' );
 		wp_add_inline_script( self::HANDLE, 'gtag("js", new Date());' );
 		wp_add_inline_script( self::HANDLE, 'gtag("set", "developer_id.dZTNiMT", true);' ); // Site Kit developer ID.
 
@@ -67,7 +69,7 @@ class GTag {
 		}
 
 		foreach ( $this->commands as $command ) {
-			wp_add_inline_script( self::HANDLE, $this->get_gtag_call_for_command( $command ) );
+			wp_add_inline_script( self::HANDLE, $this->get_gtag_call_for_command( $command ), $command['position'] );
 		}
 
 		$filter_google_gtagjs = function ( $tag, $handle ) {

@@ -128,7 +128,7 @@ class Web_Tag extends Module_Web_Tag implements Tag_Interface {
 		$gtag_opt = apply_filters( 'googlesitekit_gtag_opt', $gtag_opt );
 
 		if ( ! empty( $gtag_opt['linker'] ) ) {
-			$gtag->add_command( 'set', 'linker', $gtag_opt['linker'] );
+			$gtag->add_command( 'set', array( 'linker', $gtag_opt['linker'] ) );
 
 			unset( $gtag_opt['linker'] );
 		}
