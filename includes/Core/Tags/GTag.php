@@ -36,11 +36,10 @@ class GTag {
 		);
 	}
 
-	public function add_command( $command, $parameters, $position = 'after' ) {
+	public function add_command( $command, $parameters ) {
 		$this->commands[] = array(
-			'command'    => $command,       // e.g. 'config', 'event', etc.
-			'parameters' => $parameters,    // e.g. array( 'send_to', 'AW-123456789' )
-			'position'   => $position,      // e.g. 'after', 'before'. This determines the position of the inline script relative to the gtag.js script.
+			'command'    => $command,    // e.g. 'config', 'event', etc.
+			'parameters' => $parameters, // e.g. array( 'send_to', 'AW-123456789' )
 		);
 	}
 
@@ -60,8 +59,8 @@ class GTag {
 		wp_enqueue_script( self::HANDLE, $gtag_src, false, null, false );
 		wp_script_add_data( self::HANDLE, 'script_execution', 'async' );
 
-		// Pass $position = 'before' to ensure the dataLayer is output before the gtag.js script, primarily to facilitate configuring consent mode defaults.
-		wp_add_inline_script( self::HANDLE, 'window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}', 'before' );
+		// Note that `gtag()` may already be defined via the `Consent_Mode` output, but this is safe to call multiple times.
+		wp_add_inline_script( self::HANDLE, 'window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}' );
 		wp_add_inline_script( self::HANDLE, 'gtag("js", new Date());' );
 		wp_add_inline_script( self::HANDLE, 'gtag("set", "developer_id.dZTNiMT", true);' ); // Site Kit developer ID.
 
@@ -70,7 +69,7 @@ class GTag {
 		}
 
 		foreach ( $this->commands as $command ) {
-			wp_add_inline_script( self::HANDLE, $this->get_gtag_call_for_command( $command ), $command['position'] );
+			wp_add_inline_script( self::HANDLE, $this->get_gtag_call_for_command( $command ) );
 		}
 
 		$filter_google_gtagjs = function ( $tag, $handle ) {
@@ -78,7 +77,7 @@ class GTag {
 				return $tag;
 			}
 
-			$snippet_comment_begin = sprintf( "\n<!-- %s -->\n", esc_html__( 'Google tag (gtag.js)snippet added by Site Kit', 'google-site-kit' ) );
+			$snippet_comment_begin = sprintf( "\n<!-- %s -->\n", esc_html__( 'Google tag (gtag.js) snippet added by Site Kit', 'google-site-kit' ) );
 			$snippet_comment_end   = sprintf( "\n<!-- %s -->\n", esc_html__( 'End Google tag (gtag.js) snippet added by Site Kit', 'google-site-kit' ) );
 
 			return $snippet_comment_begin . $tag . $snippet_comment_end;
