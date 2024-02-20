@@ -36,10 +36,11 @@ class GTag {
 		);
 	}
 
-	public function add_command( $command, $parameters ) {
+	public function add_command( $command, $parameters, $position = 'after' ) {
 		$this->commands[] = array(
-			'command'    => $command,    // e.g. 'config', 'event', etc.
-			'parameters' => $parameters, // e.g. array( 'send_to', 'AW-123456789' )
+			'command'    => $command,       // e.g. 'config', 'event', etc.
+			'parameters' => $parameters,    // e.g. array( 'send_to', 'AW-123456789' )
+			'position'   => $position,      // e.g. 'after', 'before'. This determines the position of the inline script relative to the gtag.js script.
 		);
 	}
 
@@ -69,7 +70,7 @@ class GTag {
 		}
 
 		foreach ( $this->commands as $command ) {
-			wp_add_inline_script( self::HANDLE, $this->get_gtag_call_for_command( $command ) );
+			wp_add_inline_script( self::HANDLE, $this->get_gtag_call_for_command( $command ), $command['position'] );
 		}
 
 		$filter_google_gtagjs = function ( $tag, $handle ) {
