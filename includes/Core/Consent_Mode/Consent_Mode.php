@@ -2,36 +2,34 @@
 
 namespace Google\Site_Kit\Core\Consent_Mode;
 
-use Google\Site_Kit\Core\Util\Method_Proxy_Trait;
-
 class Consent_Mode {
-	use Method_Proxy_Trait;
-
 	public function register() {
-		$consent_defaults = array(
-			'ad_storage'         => 'denied',
-			'ad_personalization' => 'denied',
-		);
+		// TODO: Bail out if Consent Mode `enabled` is not true.
 
-		$consent_category_map = apply_filters(
-			'googlesitekit_consent_category_map',
-			array(
-				'statistics' => array( 'analytics_storage' ),
-				'marketing'  => array( 'ad_storage', 'ad_user_data', 'ad_personalization' ),
-			)
-		);
+		// Declare that the plugin is compatible with the WP Consent API.
+		$plugin = plugin_basename( __FILE__ );
+		add_filter( "wp_consent_api_registered_{$plugin}", '__return_true' );
 
 		add_action(
-			'wp_head',
-			function() use ( $consent_defaults, $consent_category_map ) {
-				$this->print_gtag_snippet( $consent_defaults );
-				$this->print_wp_consent_api_snippet( $consent_category_map );
+			'wp_head',  // The wp_head action is used to ensure the snippets are printed in the head on the front-end (not admin).
+			function() {
+				$this->print_gtag_snippet();
+				$this->print_wp_consent_api_snippet();
 			},
-			1
+			1 // Set priority to 1 to ensure the snippets are printed with top priority in the head.
 		);
 	}
 
-	protected function print_gtag_snippet( $consent_defaults ) {
+	protected function print_gtag_snippet() {
+		$consent_defaults = array(
+			'analytics_storage'  => 'denied',
+			'ad_storage'         => 'denied',
+			'ad_user_data'       => 'denied',
+			'ad_personalization' => 'denied',
+			'region'             => array(), // This will be populated from the Consent Mode `region` setting.
+			// `wait_for_update`     => 500, // TODO: We should probably add this to allow time for CMPs to update the consent status.
+		);
+
 		?>
 <!-- <?php echo esc_html__( 'Google tag (gtag.js) snippet added by Site Kit', 'google-site-kit' ); ?> -->
 <script id='google_gtagjs-js-consent-default'>
@@ -42,7 +40,15 @@ gtag("consent","default", <?php echo wp_json_encode( $consent_defaults ); ?>);
 		<?php
 	}
 
-	protected function print_wp_consent_api_snippet( $consent_category_map ) {
+	protected function print_wp_consent_api_snippet() {
+		$consent_category_map = apply_filters(
+			'googlesitekit_consent_category_map',
+			array(
+				'statistics' => array( 'analytics_storage' ),
+				'marketing'  => array( 'ad_storage', 'ad_user_data', 'ad_personalization' ),
+			)
+		);
+
 		?>
 <!-- <?php echo esc_html__( 'WP Consent API integration snippet added by Site Kit', 'google-site-kit' ); ?> -->
 <script id='googlesitekit-wp-consent-api'>
