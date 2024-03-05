@@ -37,6 +37,7 @@ import {
 	CONTEXT_MAIN_DASHBOARD_CONTENT,
 	CONTEXT_MAIN_DASHBOARD_SPEED,
 	CONTEXT_MAIN_DASHBOARD_MONETIZATION,
+	CONTEXT_MAIN_DASHBOARD_GENERAL,
 } from '../googlesitekit/widgets/default-contexts';
 import { DAY_IN_SECONDS } from '../util';
 import Header from './Header';
@@ -48,11 +49,11 @@ import HelpMenu from './help/HelpMenu';
 import BannerNotifications from './notifications/BannerNotifications';
 import SurveyViewTrigger from './surveys/SurveyViewTrigger';
 import CurrentSurveyPortal from './surveys/CurrentSurveyPortal';
-import ConsentModeSetupCTAWidget from './consent-mode/ConsentModeSetupCTAWidget';
 import ScrollEffect from './ScrollEffect';
 import MetricsSelectionPanel from './KeyMetrics/MetricsSelectionPanel';
 import {
 	ANCHOR_ID_CONTENT,
+	ANCHOR_ID_GENERAL,
 	ANCHOR_ID_KEY_METRICS,
 	ANCHOR_ID_MONETIZATION,
 	ANCHOR_ID_SPEED,
@@ -238,6 +239,8 @@ export default function DashboardMainApp() {
 		lastWidgetAnchor = ANCHOR_ID_TRAFFIC;
 	} else if ( isKeyMetricsActive ) {
 		lastWidgetAnchor = ANCHOR_ID_KEY_METRICS;
+	} else if ( isConsentModeEnabled ) {
+		lastWidgetAnchor = ANCHOR_ID_GENERAL;
 	}
 
 	return (
@@ -250,7 +253,16 @@ export default function DashboardMainApp() {
 				{ ! viewOnlyDashboard && <DashboardSharingSettingsButton /> }
 				<HelpMenu />
 			</Header>
-			{ isConsentModeEnabled && <ConsentModeSetupCTAWidget /> }
+			{ isConsentModeEnabled && (
+				<WidgetContextRenderer
+					id={ ANCHOR_ID_GENERAL }
+					slug={ CONTEXT_MAIN_DASHBOARD_GENERAL }
+					className={ classnames( {
+						'googlesitekit-widget-context--last':
+							lastWidgetAnchor === ANCHOR_ID_GENERAL,
+					} ) }
+				/>
+			) }
 			{ isKeyMetricsWidgetHidden !== true && (
 				<WidgetContextRenderer
 					id={ ANCHOR_ID_KEY_METRICS }

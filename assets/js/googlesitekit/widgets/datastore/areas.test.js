@@ -135,43 +135,16 @@ describe( 'core/widgets Widget areas', () => {
 				} ).toThrow( 'slug is required.' );
 			} );
 
-			it( 'requires settings', () => {
-				// (It will throw for the first missing param, because the settings argument is
-				// always defined .)
+			it( 'requires a valid settings.style', () => {
 				expect( () => {
 					registry
 						.dispatch( CORE_WIDGETS )
-						.registerWidgetArea( 'my-cool-slug' );
-				} ).toThrow( 'settings.title is required.' );
-			} );
-
-			it( 'requires a title in settings', () => {
-				expect( () => {
-					registry
-						.dispatch( CORE_WIDGETS )
-						.registerWidgetArea( 'header', {} );
-				} ).toThrow( 'settings.title is required.' );
-
-				expect( () => {
-					registry
-						.dispatch( CORE_WIDGETS )
-						.registerWidgetArea( 'header', {
-							title: 'Analytics Header',
-							subtitle: 'Analytics tell you about visitors',
+						.registerWidgetArea( 'my-cool-slug', {
+							style: 'invalid-style',
 						} );
-				} ).not.toThrow();
-
-				expect( () => {
-					registry
-						.dispatch( CORE_WIDGETS )
-						.registerWidgetArea( 'header', {
-							title: 'Analytics Header',
-							subtitle: 'Analytics tell you about visitors',
-							style: 'composite',
-						} );
-				} ).not.toThrow();
-
-				expect( console ).toHaveWarned();
+				} ).toThrow(
+					'settings.style must be one of: WIDGET_AREA_STYLES.BOXES, WIDGET_AREA_STYLES.COMPOSITE'
+				);
 			} );
 
 			it( 'should register multiple widget areas', () => {

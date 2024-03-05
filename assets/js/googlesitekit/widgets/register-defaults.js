@@ -39,6 +39,7 @@ import {
 	KeyMetricsSetupCTAWidget,
 	ChangeMetricsLink,
 } from '../../components/KeyMetrics';
+import ConsentModeSetupCTAWidget from '../../components/consent-mode/ConsentModeSetupCTAWidget';
 import AddMetricCTATile from '../../components/KeyMetrics/AddMetricCTATile';
 import ConnectGA4CTAWidget from '../../modules/analytics-4/components/widgets/ConnectGA4CTAWidget';
 import KeyMetricsNewBadge from '../../components/KeyMetrics/KeyMetricsNewBadge';
@@ -58,12 +59,14 @@ const { ...ADDITIONAL_WIDGET_AREAS } = WIDGET_AREAS;
 export function registerDefaults( widgetsAPI ) {
 	const {
 		// Main dashboard
+		CONTEXT_MAIN_DASHBOARD_GENERAL,
 		CONTEXT_MAIN_DASHBOARD_KEY_METRICS,
 		CONTEXT_MAIN_DASHBOARD_TRAFFIC,
 		CONTEXT_MAIN_DASHBOARD_CONTENT,
 		CONTEXT_MAIN_DASHBOARD_SPEED,
 		CONTEXT_MAIN_DASHBOARD_MONETIZATION,
 		// Entity dashboard
+		CONTEXT_ENTITY_DASHBOARD_GENERAL,
 		CONTEXT_ENTITY_DASHBOARD_TRAFFIC,
 		CONTEXT_ENTITY_DASHBOARD_CONTENT,
 		CONTEXT_ENTITY_DASHBOARD_SPEED,
@@ -72,12 +75,14 @@ export function registerDefaults( widgetsAPI ) {
 
 	const {
 		// Main dashboard
+		AREA_MAIN_DASHBOARD_GENERAL_PRIMARY,
 		AREA_MAIN_DASHBOARD_KEY_METRICS_PRIMARY,
 		AREA_MAIN_DASHBOARD_TRAFFIC_PRIMARY,
 		AREA_MAIN_DASHBOARD_CONTENT_PRIMARY,
 		AREA_MAIN_DASHBOARD_SPEED_PRIMARY,
 		AREA_MAIN_DASHBOARD_MONETIZATION_PRIMARY,
 		// Entity dashboard
+		AREA_ENTITY_DASHBOARD_GENERAL_PRIMARY,
 		AREA_ENTITY_DASHBOARD_TRAFFIC_PRIMARY,
 		AREA_ENTITY_DASHBOARD_CONTENT_PRIMARY,
 		AREA_ENTITY_DASHBOARD_SPEED_PRIMARY,
@@ -87,6 +92,15 @@ export function registerDefaults( widgetsAPI ) {
 	/*
 	 * Main dashboard areas.
 	 */
+
+	widgetsAPI.registerWidgetArea(
+		AREA_MAIN_DASHBOARD_GENERAL_PRIMARY,
+		{
+			style: WIDGET_AREA_STYLES.BOXES,
+			priority: 1,
+		},
+		CONTEXT_MAIN_DASHBOARD_GENERAL
+	);
 
 	widgetsAPI.registerWidgetArea(
 		AREA_MAIN_DASHBOARD_KEY_METRICS_PRIMARY,
@@ -191,6 +205,15 @@ export function registerDefaults( widgetsAPI ) {
 	 */
 
 	widgetsAPI.registerWidgetArea(
+		AREA_ENTITY_DASHBOARD_GENERAL_PRIMARY,
+		{
+			style: WIDGET_AREA_STYLES.BOXES,
+			priority: 1,
+		},
+		CONTEXT_ENTITY_DASHBOARD_GENERAL
+	);
+
+	widgetsAPI.registerWidgetArea(
 		AREA_ENTITY_DASHBOARD_TRAFFIC_PRIMARY,
 		{
 			title: __(
@@ -253,6 +276,21 @@ export function registerDefaults( widgetsAPI ) {
 			priority: 1,
 		},
 		CONTEXT_ENTITY_DASHBOARD_MONETIZATION
+	);
+
+	widgetsAPI.registerWidget(
+		'consentModeSetupCTA',
+		{
+			Component: ConsentModeSetupCTAWidget,
+			width: [ widgetsAPI.WIDGET_WIDTHS.FULL ],
+			priority: 1,
+			wrapWidget: false,
+			modules: [],
+		},
+		[
+			AREA_MAIN_DASHBOARD_GENERAL_PRIMARY,
+			AREA_ENTITY_DASHBOARD_GENERAL_PRIMARY,
+		]
 	);
 
 	widgetsAPI.registerWidget(

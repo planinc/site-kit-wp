@@ -37,6 +37,7 @@ import {
 	CONTEXT_ENTITY_DASHBOARD_CONTENT,
 	CONTEXT_ENTITY_DASHBOARD_SPEED,
 	CONTEXT_ENTITY_DASHBOARD_MONETIZATION,
+	CONTEXT_ENTITY_DASHBOARD_GENERAL,
 } from '../googlesitekit/widgets/default-contexts';
 import WidgetContextRenderer from '../googlesitekit/widgets/components/WidgetContextRenderer';
 import EntitySearchInput from './EntitySearchInput';
@@ -44,6 +45,7 @@ import DateRangeSelector from './DateRangeSelector';
 import HelpMenu from './help/HelpMenu';
 import {
 	ANCHOR_ID_CONTENT,
+	ANCHOR_ID_GENERAL,
 	ANCHOR_ID_MONETIZATION,
 	ANCHOR_ID_SPEED,
 	ANCHOR_ID_TRAFFIC,
@@ -56,7 +58,6 @@ import { Cell, Grid, Row } from '../material-components';
 import PageHeader from './PageHeader';
 import Layout from './layout/Layout';
 import { CORE_WIDGETS } from '../googlesitekit/widgets/datastore/constants';
-import ConsentModeSetupCTAWidget from './consent-mode/ConsentModeSetupCTAWidget';
 import ScrollEffect from './ScrollEffect';
 import EntityBannerNotifications from './notifications/EntityBannerNotifications';
 import DashboardSharingSettingsButton from './dashboard-sharing/DashboardSharingSettingsButton';
@@ -139,6 +140,8 @@ function DashboardEntityApp() {
 		lastWidgetAnchor = ANCHOR_ID_CONTENT;
 	} else if ( isTrafficActive ) {
 		lastWidgetAnchor = ANCHOR_ID_TRAFFIC;
+	} else if ( isConsentModeEnabled ) {
+		lastWidgetAnchor = ANCHOR_ID_GENERAL;
 	}
 
 	if ( currentEntityURL === null ) {
@@ -222,7 +225,16 @@ function DashboardEntityApp() {
 				{ ! viewOnlyDashboard && <DashboardSharingSettingsButton /> }
 				<HelpMenu />
 			</Header>
-			{ isConsentModeEnabled && <ConsentModeSetupCTAWidget /> }
+			{ isConsentModeEnabled && (
+				<WidgetContextRenderer
+					id={ ANCHOR_ID_GENERAL }
+					slug={ CONTEXT_ENTITY_DASHBOARD_GENERAL }
+					className={ classnames( {
+						'googlesitekit-widget-context--last':
+							lastWidgetAnchor === ANCHOR_ID_GENERAL,
+					} ) }
+				/>
+			) }
 			<WidgetContextRenderer
 				id={ ANCHOR_ID_TRAFFIC }
 				slug={ CONTEXT_ENTITY_DASHBOARD_TRAFFIC }

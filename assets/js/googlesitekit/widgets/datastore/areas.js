@@ -107,7 +107,6 @@ export const actions = {
 		} = {}
 	) {
 		invariant( slug, 'slug is required.' );
-		invariant( title, 'settings.title is required.' );
 		invariant(
 			Object.values( WIDGET_AREA_STYLES ).includes( style ),
 			`settings.style must be one of: ${ WidgetAreaStyleKeys }.`

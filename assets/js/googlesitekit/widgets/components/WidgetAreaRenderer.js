@@ -188,36 +188,38 @@ export default function WidgetAreaRenderer( { slug, contextID } ) {
 					) }
 					ref={ widgetAreaRef }
 				>
-					<Row>
-						<Cell
-							className="googlesitekit-widget-area-header"
-							size={ 12 }
-						>
-							{ Icon && <Icon width={ 33 } height={ 33 } /> }
+					{ !! ( Icon || title || subtitle || CTA ) && (
+						<Row>
+							<Cell
+								className="googlesitekit-widget-area-header"
+								size={ 12 }
+							>
+								{ Icon && <Icon width={ 33 } height={ 33 } /> }
 
-							{ title && (
-								<h3 className="googlesitekit-widget-area-header__title googlesitekit-heading-3">
-									{ title }
-								</h3>
-							) }
+								{ title && (
+									<h3 className="googlesitekit-widget-area-header__title googlesitekit-heading-3">
+										{ title }
+									</h3>
+								) }
 
-							{ ( subtitle || CTA ) && (
-								<div className="googlesitekit-widget-area-header__details">
-									{ subtitle && (
-										<h4 className="googlesitekit-widget-area-header__subtitle">
-											{ subtitle }
-										</h4>
-									) }
+								{ ( subtitle || CTA ) && (
+									<div className="googlesitekit-widget-area-header__details">
+										{ subtitle && (
+											<h4 className="googlesitekit-widget-area-header__subtitle">
+												{ subtitle }
+											</h4>
+										) }
 
-									{ CTA && (
-										<div className="googlesitekit-widget-area-header__cta">
-											<CTA />
-										</div>
-									) }
-								</div>
-							) }
-						</Cell>
-					</Row>
+										{ CTA && (
+											<div className="googlesitekit-widget-area-header__cta">
+												<CTA />
+											</div>
+										) }
+									</div>
+								) }
+							</Cell>
+						</Row>
+					) }
 
 					<div className="googlesitekit-widget-area-widgets">
 						<Row>

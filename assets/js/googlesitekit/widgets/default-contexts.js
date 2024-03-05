@@ -17,12 +17,14 @@
  */
 
 // Main dashboard
+export const CONTEXT_MAIN_DASHBOARD_GENERAL = 'mainDashboardGeneral';
 export const CONTEXT_MAIN_DASHBOARD_KEY_METRICS = 'mainDashboardKeyMetrics';
 export const CONTEXT_MAIN_DASHBOARD_TRAFFIC = 'mainDashboardTraffic';
 export const CONTEXT_MAIN_DASHBOARD_CONTENT = 'mainDashboardContent';
 export const CONTEXT_MAIN_DASHBOARD_SPEED = 'mainDashboardSpeed';
 export const CONTEXT_MAIN_DASHBOARD_MONETIZATION = 'mainDashboardMonetization';
 // Entity dashboard
+export const CONTEXT_ENTITY_DASHBOARD_GENERAL = 'entityDashboardGeneral';
 export const CONTEXT_ENTITY_DASHBOARD_TRAFFIC = 'entityDashboardTraffic';
 export const CONTEXT_ENTITY_DASHBOARD_CONTENT = 'entityDashboardContent';
 export const CONTEXT_ENTITY_DASHBOARD_SPEED = 'entityDashboardSpeed';
@@ -31,12 +33,14 @@ export const CONTEXT_ENTITY_DASHBOARD_MONETIZATION =
 
 export default {
 	// Main dashboard
+	CONTEXT_MAIN_DASHBOARD_GENERAL,
 	CONTEXT_MAIN_DASHBOARD_KEY_METRICS,
 	CONTEXT_MAIN_DASHBOARD_TRAFFIC,
 	CONTEXT_MAIN_DASHBOARD_CONTENT,
 	CONTEXT_MAIN_DASHBOARD_SPEED,
 	CONTEXT_MAIN_DASHBOARD_MONETIZATION,
 	// Entity dashboard
+	CONTEXT_ENTITY_DASHBOARD_GENERAL,
 	CONTEXT_ENTITY_DASHBOARD_TRAFFIC,
 	CONTEXT_ENTITY_DASHBOARD_CONTENT,
 	CONTEXT_ENTITY_DASHBOARD_SPEED,

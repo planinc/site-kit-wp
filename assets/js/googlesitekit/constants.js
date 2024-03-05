@@ -35,6 +35,7 @@ export const VIEW_CONTEXT_WP_DASHBOARD_VIEW_ONLY = 'wpDashboardViewOnly';
 export const VIEW_CONTEXT_MODULE_SETUP = 'moduleSetup';
 
 // Anchor ID Constants
+export const ANCHOR_ID_GENERAL = 'general';
 export const ANCHOR_ID_KEY_METRICS = 'key-metrics';
 export const ANCHOR_ID_TRAFFIC = 'traffic';
 export const ANCHOR_ID_CONTENT = 'content';

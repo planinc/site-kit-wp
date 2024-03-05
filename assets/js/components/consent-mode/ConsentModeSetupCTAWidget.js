@@ -38,7 +38,6 @@ import { CORE_LOCATION } from '../../googlesitekit/datastore/location/constants'
 import { CORE_SITE } from '../../googlesitekit/datastore/site/constants';
 import { CORE_USER } from '../../googlesitekit/datastore/user/constants';
 import { MODULES_ANALYTICS } from '../../modules/analytics/datastore/constants';
-import { withWidgetComponentProps } from '../../googlesitekit/widgets/util';
 import { Cell, Grid, Row } from '../../material-components';
 import BannerGraphicsSVG from '../../../svg/graphics/consent-mode-setup.svg';
 import {
@@ -54,7 +53,7 @@ import { CONSENT_MODE_SETUP_CTA_WIDGET_SLUG } from './constants';
 
 const { useSelect, useDispatch } = Data;
 
-function ConsentModeSetupCTAWidget( { Widget, WidgetNull } ) {
+export default function ConsentModeSetupCTAWidget( { Widget, WidgetNull } ) {
 	const [ isSaving, setIsSaving ] = useState( false );
 	const [ saveError, setSaveError ] = useState( null );
 
@@ -159,101 +158,81 @@ function ConsentModeSetupCTAWidget( { Widget, WidgetNull } ) {
 	};
 
 	return (
-		<div className="googlesitekit-widget-context">
-			<Grid className="googlesitekit-widget-area">
+		<Widget
+			noPadding
+			className="googlesitekit-consent-mode-setup-cta-widget"
+		>
+			<Grid collapsed>
 				<Row>
-					<Cell size={ 12 }>
-						<Widget
-							noPadding
-							className="googlesitekit-consent-mode-setup-cta-widget"
-						>
-							<Grid collapsed>
-								<Row>
-									<Cell
-										smSize={ 6 }
-										mdSize={ 8 }
-										lgSize={ 6 }
-										className="googlesitekit-consent-mode-setup-cta-widget__primary-cell"
-									>
-										<h3 className="googlesitekit-consent-mode-setup-cta-widget__title">
-											{ __(
-												'Enable Consent Mode to preserve tracking for your Ads campaigns',
+					<Cell
+						smSize={ 6 }
+						mdSize={ 8 }
+						lgSize={ 6 }
+						className="googlesitekit-consent-mode-setup-cta-widget__primary-cell"
+					>
+						<h3 className="googlesitekit-consent-mode-setup-cta-widget__title">
+							{ __(
+								'Enable Consent Mode to preserve tracking for your Ads campaigns',
+								'google-site-kit'
+							) }
+						</h3>
+						<p className="googlesitekit-consent-mode-setup-cta-widget__description">
+							{ createInterpolateElement(
+								__(
+									'Consent mode interacts with your Consent Management Platform (CMP) or custom implementation for obtaining visitor consent, such as a cookie consent banner. <a>Learn more</a>',
+									'google-site-kit'
+								),
+								{
+									a: (
+										<Link
+											href={ consentModeDocumentationURL }
+											external
+											aria-label={ __(
+												'Learn more about consent mode',
 												'google-site-kit'
 											) }
-										</h3>
-										<p className="googlesitekit-consent-mode-setup-cta-widget__description">
-											{ createInterpolateElement(
-												__(
-													'Consent mode interacts with your Consent Management Platform (CMP) or custom implementation for obtaining visitor consent, such as a cookie consent banner. <a>Learn more</a>',
-													'google-site-kit'
-												),
-												{
-													a: (
-														<Link
-															href={
-																consentModeDocumentationURL
-															}
-															external
-															aria-label={ __(
-																'Learn more about consent mode',
-																'google-site-kit'
-															) }
-														/>
-													),
-												}
-											) }
-										</p>
-										{ saveError && (
-											<ErrorText
-												message={ saveError.message }
-											/>
-										) }
-										<div className="googlesitekit-consent-mode-setup-cta-widget__actions-wrapper">
-											<Fragment>
-												<SpinnerButton
-													onClick={ handleCTAClick }
-													isSaving={ isSaving }
-												>
-													{ __(
-														'Enable consent mode',
-														'google-site-kit'
-													) }
-												</SpinnerButton>
-												<Button
-													tertiary
-													onClick={
-														handleDismissClick
-													}
-												>
-													{ dismissCount < 2
-														? __(
-																'Maybe later',
-																'google-site-kit'
-														  )
-														: __(
-																'Don’t show again',
-																'google-site-kit'
-														  ) }
-												</Button>
-											</Fragment>
-										</div>
-									</Cell>
-									<Cell
-										alignBottom
-										className="googlesitekit-consent-mode-setup-cta-widget__svg-wrapper"
-										smSize={ 6 }
-										mdSize={ 8 }
-										lgSize={ 6 }
-									>
-										<BannerGraphicsSVG />
-									</Cell>
-								</Row>
-							</Grid>
-						</Widget>
+										/>
+									),
+								}
+							) }
+						</p>
+						{ saveError && (
+							<ErrorText message={ saveError.message } />
+						) }
+						<div className="googlesitekit-consent-mode-setup-cta-widget__actions-wrapper">
+							<Fragment>
+								<SpinnerButton
+									onClick={ handleCTAClick }
+									isSaving={ isSaving }
+								>
+									{ __(
+										'Enable consent mode',
+										'google-site-kit'
+									) }
+								</SpinnerButton>
+								<Button tertiary onClick={ handleDismissClick }>
+									{ dismissCount < 2
+										? __( 'Maybe later', 'google-site-kit' )
+										: __(
+												'Don’t show again',
+												'google-site-kit'
+										  ) }
+								</Button>
+							</Fragment>
+						</div>
+					</Cell>
+					<Cell
+						alignBottom
+						className="googlesitekit-consent-mode-setup-cta-widget__svg-wrapper"
+						smSize={ 6 }
+						mdSize={ 8 }
+						lgSize={ 6 }
+					>
+						<BannerGraphicsSVG />
 					</Cell>
 				</Row>
 			</Grid>
-		</div>
+		</Widget>
 	);
 }
 
@@ -261,7 +240,3 @@ ConsentModeSetupCTAWidget.propTypes = {
 	Widget: PropTypes.elementType.isRequired,
 	WidgetNull: PropTypes.elementType.isRequired,
 };
-
-export default withWidgetComponentProps( 'consent-mode-setup-cta' )(
-	ConsentModeSetupCTAWidget
-);
