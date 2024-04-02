@@ -19,7 +19,7 @@
 export const EDITING_USER_ROLE_SELECT_SLUG_KEY =
 	'editing-user-role-select-slug-key';
 
-export const EXPERIMENTAL_MODULES = [];
+export const EXPERIMENTAL_MODULES = [ 'analytics-4' ];
 
 export const SETTINGS_DIALOG = 'dashboardSharingDialogOpen';
 

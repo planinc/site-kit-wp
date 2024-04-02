@@ -39,22 +39,39 @@ function NewBadge( {
 	learnMoreLink,
 	forceOpen,
 	onLearnMoreClick = () => {},
+	...props
 } ) {
+	const BadgeComponent = (
+		<Badge
+			className="googlesitekit-new-badge"
+			label={ __( 'New', 'google-site-kit' ) }
+			{ ...props }
+		/>
+	);
+
+	if ( ! tooltipTitle ) {
+		return BadgeComponent;
+	}
+
 	return (
 		<Tooltip
 			tooltipClassName="googlesitekit-new-badge__tooltip"
 			title={
 				<Fragment>
 					{ tooltipTitle }
-					<br />
-					<Link
-						href={ learnMoreLink }
-						onClick={ onLearnMoreClick }
-						external
-						hideExternalIndicator
-					>
-						{ __( 'Learn more', 'google-site-kit' ) }
-					</Link>
+					{ learnMoreLink && (
+						<Fragment>
+							<br />
+							<Link
+								href={ learnMoreLink }
+								onClick={ onLearnMoreClick }
+								external
+								hideExternalIndicator
+							>
+								{ __( 'Learn more', 'google-site-kit' ) }
+							</Link>
+						</Fragment>
+					) }
 				</Fragment>
 			}
 			placement="top"
@@ -63,17 +80,14 @@ function NewBadge( {
 			interactive
 			open={ forceOpen }
 		>
-			<Badge
-				className="googlesitekit-new-badge"
-				label={ __( 'New', 'google-site-kit' ) }
-			/>
+			{ BadgeComponent }
 		</Tooltip>
 	);
 }
 
 NewBadge.propTypes = {
-	tooltipTitle: PropTypes.string.isRequired,
-	learnMoreLink: PropTypes.string.isRequired,
+	tooltipTitle: PropTypes.string,
+	learnMoreLink: PropTypes.string,
 	forceOpen: PropTypes.bool,
 	onLearnMoreClick: PropTypes.func,
 };
