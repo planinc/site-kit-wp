@@ -20,17 +20,16 @@
  * External dependencies
  */
 import { isEqual } from 'lodash';
-import PropTypes from 'prop-types';
 
 /**
  * WordPress dependencies
  */
 import {
+	createInterpolateElement,
 	useCallback,
 	useEffect,
 	useState,
 	useMemo,
-	createInterpolateElement,
 } from '@wordpress/element';
 import { addQueryArgs } from '@wordpress/url';
 import { __, sprintf } from '@wordpress/i18n';
@@ -38,6 +37,7 @@ import { __, sprintf } from '@wordpress/i18n';
 /**
  * Internal dependencies
  */
+import SelectionPanelFooter from '../../SelectionPanel/SelectionPanelFooter';
 import { Button, SpinnerButton } from 'googlesitekit-components';
 import Data from 'googlesitekit-data';
 import { CORE_USER } from '../../../googlesitekit/datastore/user/constants';
@@ -65,7 +65,7 @@ import useViewContext from '../../../hooks/useViewContext';
 import { trackEvent } from '../../../util';
 const { useSelect, useDispatch } = Data;
 
-export default function Footer( {
+export default function MetricsFooter( {
 	savedMetrics,
 	onNavigationToOAuthURL = () => {},
 } ) {
@@ -220,8 +220,8 @@ export default function Footer( {
 		isOpen,
 		currentButtonText,
 		setValues,
-		hasAnalytics4EditScope,
 		onNavigationToOAuthURL,
+		hasAnalytics4EditScope,
 		setValue,
 		setPermissionScopeError,
 		redirectURL,
@@ -233,6 +233,88 @@ export default function Footer( {
 	}, [ setValue, trackingCategory ] );
 
 	const [ prevIsOpen, setPrevIsOpen ] = useState( null );
+
+	/**
+	 * Returns the cancel button for key metrics selection panel.
+	 *
+	 * @since n.e.x.t
+	 *
+	 * @return {JSX} Cancel button element.
+	 */
+	function CancelButton() {
+		return (
+			<Button
+				tertiary
+				onClick={ onCancelClick }
+				disabled={ isSavingSettings || isNavigatingToOAuthURL }
+			>
+				{ __( 'Cancel', 'google-site-kit' ) }
+			</Button>
+		);
+	}
+
+	function Content( { className } ) {
+		if ( haveSettingsChanged && metricsLimitError ) {
+			return (
+				<ErrorNotice
+					error={ {
+						message: metricsLimitError,
+					} }
+					noPrefix={
+						selectedMetricsCount < MIN_SELECTED_METRICS_COUNT ||
+						selectedMetricsCount > MAX_SELECTED_METRICS_COUNT
+					}
+				/>
+			);
+		}
+		return (
+			<p className={ `${ className }__metric-count` }>
+				{ createInterpolateElement(
+					sprintf(
+						/* translators: 1: Number of selected metrics. 2: Maximum number of metrics that can be selected. */
+						__(
+							'%1$d selected <MaxCount>(up to %2$d)</MaxCount>',
+							'google-site-kit'
+						),
+						selectedMetricsCount,
+						MAX_SELECTED_METRICS_COUNT
+					),
+					{
+						MaxCount: (
+							<span
+								className={ `${ className }__metric-count--max-count` }
+							/>
+						),
+					}
+				) }
+			</p>
+		);
+	}
+
+	/**
+	 * Returns the save button for key metrics selection panel.
+	 *
+	 * @since n.e.x.t
+	 *
+	 * @return {JSX} Save button element.
+	 */
+	function SaveButton() {
+		return (
+			<SpinnerButton
+				onClick={ onSaveClick }
+				isSaving={ isSavingSettings || isNavigatingToOAuthURL }
+				disabled={
+					selectedMetricsCount < MIN_SELECTED_METRICS_COUNT ||
+					selectedMetricsCount > MAX_SELECTED_METRICS_COUNT ||
+					isSavingSettings ||
+					( ! isOpen && wasSaved ) ||
+					isNavigatingToOAuthURL
+				}
+			>
+				{ finalButtonText || currentButtonText }
+			</SpinnerButton>
+		);
+	}
 
 	useEffect( () => {
 		if ( prevIsOpen !== null ) {
@@ -277,67 +359,11 @@ export default function Footer( {
 	}
 
 	return (
-		<footer className="googlesitekit-km-selection-panel-footer">
-			{ saveError && <ErrorNotice error={ saveError } /> }
-			<div className="googlesitekit-km-selection-panel-footer__content">
-				{ haveSettingsChanged && metricsLimitError ? (
-					<ErrorNotice
-						error={ {
-							message: metricsLimitError,
-						} }
-						noPrefix={
-							selectedMetricsCount < MIN_SELECTED_METRICS_COUNT ||
-							selectedMetricsCount > MAX_SELECTED_METRICS_COUNT
-						}
-					/>
-				) : (
-					<p className="googlesitekit-km-selection-panel-footer__metric-count">
-						{ createInterpolateElement(
-							sprintf(
-								/* translators: 1: Number of selected metrics. 2: Maximum number of metrics that can be selected. */
-								__(
-									'%1$d selected <MaxCount>(up to %2$d)</MaxCount>',
-									'google-site-kit'
-								),
-								selectedMetricsCount,
-								MAX_SELECTED_METRICS_COUNT
-							),
-							{
-								MaxCount: (
-									<span className="googlesitekit-km-selection-panel-footer__metric-count--max-count" />
-								),
-							}
-						) }
-					</p>
-				) }
-				<div className="googlesitekit-km-selection-panel-footer__actions">
-					<Button
-						tertiary
-						onClick={ onCancelClick }
-						disabled={ isSavingSettings || isNavigatingToOAuthURL }
-					>
-						{ __( 'Cancel', 'google-site-kit' ) }
-					</Button>
-					<SpinnerButton
-						onClick={ onSaveClick }
-						isSaving={ isSavingSettings || isNavigatingToOAuthURL }
-						disabled={
-							selectedMetricsCount < MIN_SELECTED_METRICS_COUNT ||
-							selectedMetricsCount > MAX_SELECTED_METRICS_COUNT ||
-							isSavingSettings ||
-							( ! isOpen && wasSaved ) ||
-							isNavigatingToOAuthURL
-						}
-					>
-						{ finalButtonText || currentButtonText }
-					</SpinnerButton>
-				</div>
-			</div>
-		</footer>
+		<SelectionPanelFooter
+			Content={ Content }
+			saveError={ saveError }
+			CancelButton={ CancelButton }
+			SaveButton={ SaveButton }
+		/>
 	);
 }
-
-Footer.propTypes = {
-	savedMetrics: PropTypes.array,
-	onNavigationToOAuthURL: PropTypes.func,
-};
