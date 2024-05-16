@@ -47,6 +47,10 @@
 		<!-- This sniff flags unused exception variables which cannot be avoided -->
 		<exclude name="VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable"/>
 	</rule>
+	<rule ref="Universal.Operators.DisallowShortTernary">
+		<!-- Allow short ternary -->
+		<exclude name="Universal.Operators.DisallowShortTernary.Found" />
+	</rule>
 
 	<!-- Show details about violated sniffs -->
 	<arg value="s"/>
