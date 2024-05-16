@@ -335,7 +335,6 @@ class Debug_Data {
 			'value' => __( 'Verified outside of Site Kit', 'google-site-kit' ),
 			'debug' => 'verified-non-site-kit',
 		);
-
 	}
 
 
@@ -457,7 +456,7 @@ class Debug_Data {
 		$wp_role_names     = wp_roles()->get_names();
 		$shared_role_names = array_filter(
 			$wp_role_names,
-			function( $key ) use ( $role_slugs ) {
+			function ( $key ) use ( $role_slugs ) {
 				return in_array( $key, $role_slugs, true );
 			},
 			ARRAY_FILTER_USE_KEY
@@ -643,5 +642,4 @@ class Debug_Data {
 			),
 		);
 	}
-
 }

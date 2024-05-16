@@ -135,5 +135,4 @@ class Has_Connected_Admins extends Setting {
 	protected function get_type() {
 		return 'boolean';
 	}
-
 }

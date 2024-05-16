@@ -60,5 +60,4 @@ class Tag_GuardTest extends TestCase {
 			'Should return FALSE when conversionID is empty.'
 		);
 	}
-
 }

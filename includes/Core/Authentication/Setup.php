@@ -148,8 +148,9 @@ class Setup {
 	 * @since 1.48.0
 	 */
 	public function handle_action_setup_start() {
-		$nonce        = htmlspecialchars( $this->context->input()->filter( INPUT_GET, 'nonce' ) );
-		$redirect_url = $this->context->input()->filter( INPUT_GET, 'redirect', FILTER_DEFAULT );
+		$input        = $this->context->input();
+		$nonce        = htmlspecialchars( $input->filter( INPUT_GET, 'nonce' ) ?: '' );
+		$redirect_url = $input->filter( INPUT_GET, 'redirect' );
 
 		$this->verify_nonce( $nonce, Google_Proxy::ACTION_SETUP_START );
 
@@ -228,12 +229,12 @@ class Setup {
 	 */
 	public function handle_action_verify() {
 		$input               = $this->context->input();
-		$step                = htmlspecialchars( $input->filter( INPUT_GET, 'step' ) );
-		$nonce               = htmlspecialchars( $input->filter( INPUT_GET, 'nonce' ) );
-		$code                = htmlspecialchars( $input->filter( INPUT_GET, 'googlesitekit_code' ) );
-		$site_code           = htmlspecialchars( $input->filter( INPUT_GET, 'googlesitekit_site_code' ) );
-		$verification_token  = htmlspecialchars( $input->filter( INPUT_GET, 'googlesitekit_verification_token' ) );
-		$verification_method = htmlspecialchars( $input->filter( INPUT_GET, 'googlesitekit_verification_token_type' ) );
+		$step                = htmlspecialchars( $input->filter( INPUT_GET, 'step' ) ?: '' );
+		$nonce               = htmlspecialchars( $input->filter( INPUT_GET, 'nonce' ) ?: '' );
+		$code                = htmlspecialchars( $input->filter( INPUT_GET, 'googlesitekit_code' ) ?: '' );
+		$site_code           = htmlspecialchars( $input->filter( INPUT_GET, 'googlesitekit_site_code' ) ?: '' );
+		$verification_token  = htmlspecialchars( $input->filter( INPUT_GET, 'googlesitekit_verification_token' ) ?: '' );
+		$verification_method = htmlspecialchars( $input->filter( INPUT_GET, 'googlesitekit_verification_token_type' ) ?: '' );
 
 		$this->verify_nonce( $nonce );
 
@@ -287,10 +288,10 @@ class Setup {
 	 */
 	public function handle_action_exchange_site_code() {
 		$input     = $this->context->input();
-		$step      = htmlspecialchars( $input->filter( INPUT_GET, 'step' ) );
-		$nonce     = htmlspecialchars( $input->filter( INPUT_GET, 'nonce' ) );
-		$code      = htmlspecialchars( $input->filter( INPUT_GET, 'googlesitekit_code' ) );
-		$site_code = htmlspecialchars( $input->filter( INPUT_GET, 'googlesitekit_site_code' ) );
+		$step      = htmlspecialchars( $input->filter( INPUT_GET, 'step' ) ?: '' );
+		$nonce     = htmlspecialchars( $input->filter( INPUT_GET, 'nonce' ) ?: '' );
+		$code      = htmlspecialchars( $input->filter( INPUT_GET, 'googlesitekit_code' ) ?: '' );
+		$site_code = htmlspecialchars( $input->filter( INPUT_GET, 'googlesitekit_site_code' ) ?: '' );
 
 		$this->verify_nonce( $nonce );
 

@@ -1054,7 +1054,5 @@ class ModulesTest extends TestCase {
 
 		// Connecting the module makes it shareable.
 		$this->assertTrue( $modules->is_module_shareable( 'pagespeed-insights' ) );
-
 	}
-
 }

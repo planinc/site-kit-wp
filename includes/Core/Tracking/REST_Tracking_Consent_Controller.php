@@ -89,7 +89,7 @@ class REST_Tracking_Consent_Controller {
 	 * @return array Modified array of routes that contains tracking related routes.
 	 */
 	private function get_rest_routes( $routes ) {
-		$can_access_tracking = function() {
+		$can_access_tracking = function () {
 			return current_user_can( Permissions::VIEW_SPLASH ) || current_user_can( Permissions::VIEW_DASHBOARD );
 		};
 

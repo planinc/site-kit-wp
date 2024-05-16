@@ -94,7 +94,7 @@ class Conversion_Tracking {
 
 		add_action(
 			'wp_enqueue_scripts',
-			function() {
+			function () {
 				// Do nothing if neither Ads nor Analytics snippet has been inserted.
 				if ( ! did_action( 'googlesitekit_ads_init_tag' ) && ! did_action( 'googlesitekit_analytics-4_init_tag' ) ) {
 					return;
@@ -104,7 +104,7 @@ class Conversion_Tracking {
 
 				array_walk(
 					$active_providers,
-					function( Conversion_Events_Provider $active_provider ) {
+					function ( Conversion_Events_Provider $active_provider ) {
 						$script_asset = $active_provider->register_script();
 						$script_asset->enqueue();
 					}
@@ -169,5 +169,4 @@ class Conversion_Tracking {
 
 		return $active_providers;
 	}
-
 }

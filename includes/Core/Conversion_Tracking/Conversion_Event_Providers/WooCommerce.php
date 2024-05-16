@@ -67,5 +67,4 @@ class WooCommerce extends Conversion_Events_Provider {
 
 		return $script;
 	}
-
 }

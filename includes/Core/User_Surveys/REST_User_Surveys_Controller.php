@@ -273,5 +273,4 @@ class REST_User_Surveys_Controller {
 			),
 		);
 	}
-
 }

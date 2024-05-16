@@ -711,7 +711,7 @@ abstract class Module {
 		}
 
 		$items = array_map(
-			function( $item ) {
+			function ( $item ) {
 				if ( ! is_string( $item ) ) {
 					return false;
 				}

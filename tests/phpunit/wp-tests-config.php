@@ -32,7 +32,7 @@ define( 'ABSPATH', dirname( dirname( __DIR__ ) ) . '/vendor/roots/wordpress/' );
  * @param mixed $default A default value to use if the env variable is not set.
  * @return mixed The environment variable value if it exsits, otherwise the default value.
  */
-$get_env = function( $name, $default ) {
+$get_env = function ( $name, $default ) {
 	$value = getenv( $name );
 	if ( false === $value ) {
 		$value = $default;

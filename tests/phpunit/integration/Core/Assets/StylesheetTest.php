@@ -73,11 +73,14 @@ class StylesheetTest extends TestCase {
 		$mock         = $this->getMockBuilder( 'MockClass' )->setMethods( array( 'callback' ) )->getMock();
 		$mock->expects( $this->once() )
 			->method( 'callback' )
-			->with( $expected_src, 'test-handle' );
+			->with( $expected_src, 'test-handle' )
+			->willReturnArgument( 0 );
 
 		add_filter( 'style_loader_src', array( $mock, 'callback' ), 10, 2 );
 
+		ob_start();
 		wp_styles()->do_item( 'test-handle' );
+		ob_end_clean();
 	}
 
 	public function test_registered_media() {
