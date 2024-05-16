@@ -11,8 +11,6 @@
 		<!-- Site Kit doesn't use base64 encoding functions to "obfuscate code" -->
 		<exclude name="WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode"/>
 		<exclude name="WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode"/>
-		<!-- Allow short ternary -->
-		<exclude name="WordPress.PHP.DisallowShortTernary" />
 		<!-- Prevent this from showing up as a warning on every run. See WordPress/WordPress-Coding-Standards#1425 -->
 		<exclude name="WordPress.WP.TimezoneChange.DeprecatedSniff"/>
 	</rule>
