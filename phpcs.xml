@@ -51,6 +51,10 @@
 		<!-- Allow short ternary -->
 		<exclude name="Universal.Operators.DisallowShortTernary.Found" />
 	</rule>
+	<rule ref="Generic.CodeAnalysis.UnusedFunctionParameter">
+		<exclude name="Generic.CodeAnalysis.UnusedFunctionParameter.Found" />
+		<exclude name="Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed" />
+	</rule>
 
 	<!-- Show details about violated sniffs -->
 	<arg value="s"/>
