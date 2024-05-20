@@ -75,6 +75,7 @@ import {
 import OfflineNotification from './notifications/OfflineNotification';
 import OverlayNotificationsRenderer from './OverlayNotification/OverlayNotificationsRenderer';
 import { useMonitorInternetConnection } from '../hooks/useMonitorInternetConnection';
+import Gemini from './Gemini/Gemini';
 const { useSelect, useDispatch } = Data;
 
 export default function DashboardMainApp() {
@@ -252,6 +253,9 @@ export default function DashboardMainApp() {
 			{ ! viewOnlyDashboard && <ConsentModeSetupCTAWidget /> }
 
 			<OverlayNotificationsRenderer />
+
+			{ /* Prototype Gemini assistant, to be refactored using Widget areas if ever needed. */ }
+			<Gemini />
 
 			{ isKeyMetricsWidgetHidden !== true && (
 				<WidgetContextRenderer
