@@ -98,6 +98,10 @@ export function createWidgets( registry ) {
 			}
 		},
 
+		registerModuleEffect( slug, effect ) {
+			dispatch( CORE_WIDGETS ).registerModuleEffect( slug, effect );
+		},
+
 		/**
 		 * Assigns a widget area to one (or several) contexts.
 		 *

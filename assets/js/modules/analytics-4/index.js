@@ -86,6 +86,7 @@ import {
 	AudienceTilesWidget,
 	InfoNoticeWidget,
 } from './components/audience-segmentation/dashboard';
+import useCreateCustomDimensionsEffect from './hooks/useCreateCustomDimensionsEffect';
 
 export { registerStore } from './datastore';
 
@@ -463,5 +464,10 @@ export const registerWidgets = ( widgets ) => {
 				),
 		},
 		[ AREA_MAIN_DASHBOARD_KEY_METRICS_PRIMARY ]
+	);
+
+	widgets.registerModuleEffect(
+		'analyticsCreateCustomDimensionsEffect',
+		useCreateCustomDimensionsEffect
 	);
 };

@@ -54,6 +54,13 @@ function WidgetContextRenderer( props ) {
 		return null;
 	} );
 
+	const effects = useSelect( ( select ) => {
+		if ( slug ) {
+			return select( CORE_WIDGETS ).getEffects();
+		}
+		return [];
+	} );
+
 	const isActive = useSelect(
 		( select ) =>
 			!! slug &&
@@ -61,6 +68,8 @@ function WidgetContextRenderer( props ) {
 				modules: viewableModules ? viewableModules : undefined,
 			} )
 	);
+
+	effects.forEach( ( effect ) => effect?.effect() );
 
 	if ( viewableModules === undefined ) {
 		return null;

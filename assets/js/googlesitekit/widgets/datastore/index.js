@@ -21,6 +21,7 @@
  */
 import Data from 'googlesitekit-data';
 import areas from './areas';
+import effects from './effects';
 import widgets from './widgets';
 import contexts from './contexts';
 import { createErrorStore } from '../../data/create-error-store';
@@ -29,6 +30,7 @@ import { CORE_WIDGETS } from './constants';
 const store = Data.combineStores(
 	Data.commonStore,
 	areas,
+	effects,
 	widgets,
 	contexts,
 	createErrorStore( CORE_WIDGETS )
