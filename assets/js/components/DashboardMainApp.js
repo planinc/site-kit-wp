@@ -42,18 +42,13 @@ import { DAY_IN_SECONDS } from '../util';
 import Header from './Header';
 import DashboardSharingSettingsButton from './dashboard-sharing/DashboardSharingSettingsButton';
 import WidgetContextRenderer from '../googlesitekit/widgets/components/WidgetContextRenderer';
-import {
-	AudienceSegmentationSetupCTAWidget,
-	AudienceSelectionPanel,
-} from '../modules/analytics-4/components/audience-segmentation/dashboard';
+import { AudienceSelectionPanel } from '../modules/analytics-4/components/audience-segmentation/dashboard';
 import EntitySearchInput from './EntitySearchInput';
 import DateRangeSelector from './DateRangeSelector';
 import HelpMenu from './help/HelpMenu';
 import BannerNotifications from './notifications/BannerNotifications';
 import SurveyViewTrigger from './surveys/SurveyViewTrigger';
-import AdsModuleSetupCTAWidget from './notifications/AdsModuleSetupCTAWidget';
 import CurrentSurveyPortal from './surveys/CurrentSurveyPortal';
-import ConsentModeSetupCTAWidget from './consent-mode/ConsentModeSetupCTAWidget';
 import ScrollEffect from './ScrollEffect';
 import MetricsSelectionPanel from './KeyMetrics/MetricsSelectionPanel';
 import {
@@ -81,6 +76,7 @@ import OfflineNotification from './notifications/OfflineNotification';
 import OverlayNotificationsRenderer from './OverlayNotification/OverlayNotificationsRenderer';
 import { useMonitorInternetConnection } from '../hooks/useMonitorInternetConnection';
 import { useFeature } from '../hooks/useFeature';
+import SetupCTAWidgets from '../modules/analytics-4/components/audience-segmentation/dashboard/SetupCTAWidgets';
 const { useSelect, useDispatch } = Data;
 
 export default function DashboardMainApp() {
@@ -257,7 +253,9 @@ export default function DashboardMainApp() {
 				<HelpMenu />
 			</Header>
 
-			{ ! viewOnlyDashboard && (
+			<SetupCTAWidgets />
+
+			{ /* { ! viewOnlyDashboard && (
 				<Fragment>
 					{ audienceSegmentationEnabled && (
 						<AudienceSegmentationSetupCTAWidget />
@@ -265,7 +263,7 @@ export default function DashboardMainApp() {
 					<ConsentModeSetupCTAWidget />
 					<AdsModuleSetupCTAWidget />
 				</Fragment>
-			) }
+			) } */ }
 
 			<OverlayNotificationsRenderer />
 
