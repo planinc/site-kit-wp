@@ -12,7 +12,7 @@
 		<exclude name="WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode"/>
 		<exclude name="WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode"/>
 		<!-- Allow short ternary -->
-		<exclude name="WordPress.PHP.DisallowShortTernary" />
+		<exclude name="Universal.Operators.DisallowShortTernary" />
 		<!-- Prevent this from showing up as a warning on every run. See WordPress/WordPress-Coding-Standards#1425 -->
 		<exclude name="WordPress.WP.TimezoneChange.DeprecatedSniff"/>
 	</rule>
@@ -50,12 +50,15 @@
 		<exclude name="VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable"/>
 	</rule>
 
-	<!-- Show details about violated sniffs -->
-	<arg value="s"/>
+	<!-- Show progress and details about violated sniffs -->
+	<arg value="ps"/>
 
 	<!-- Iterate over all PHP files by default -->
 	<arg name="extensions" value="php"/>
 	<file>.</file>
+
+	<!-- Check up to 20 files simultaneously. -->
+	<arg name="parallel" value="20"/>
 
 	<!-- Test-specific exclusions -->
 	<rule ref="WordPress.DB.DirectDatabaseQuery">
