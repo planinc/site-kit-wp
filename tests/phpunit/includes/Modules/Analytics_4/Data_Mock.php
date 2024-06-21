@@ -19,7 +19,6 @@ use Rx\Scheduler\ImmediateScheduler;
 use Faker\Factory as Faker;
 use Faker\Generator as FakerGenerator;
 use InvalidArgumentException;
-use PHP_CodeSniffer\Tokenizers\PHP;
 
 // You only need to set the default scheduler once.
 Scheduler::setDefaultFactory(
@@ -262,8 +261,8 @@ class Data_Mock {
 					$streams
 				)
 			)
-			// Print the array of arrays to the console via a call to map.
 			->mergeAll()
+			// Print the array of arrays to the console via a call to map.
 			->toArray()
 			// ->map(
 			// 	function ( $arrays ) {
@@ -388,6 +387,197 @@ class Data_Mock {
 			);
 	}
 
+	public function get_mock_pivot_response( $options ) {
+		invariant(
+			is_array( $options ),
+			'report options are required to generate a mock response.'
+		);
+		invariant(
+			isValidDateString( $options['startDate'] ),
+			'a valid startDate is required.'
+		);
+		invariant(
+			isValidDateString( $options['endDate'] ),
+			'a valid endDate is required.'
+		);
+		invariant(
+			isValidPivotsObject( $options['pivots'] ),
+			'pivots must be an array of objects with valid keys and values.'
+		);
+
+		$args = $options;
+
+		$faker = Faker::create();
+
+		$argsURL = $args['url'] ?? 'http://example.com';
+		$seed    = $argsURL;
+
+		if ( isset( $args['dimensionFilters'] ) ) {
+			invariant(
+				isValidDimensionFilters( $args['dimensionFilters'] ),
+				'dimensionFilters must be an object with valid keys and values.'
+			);
+
+			$seed .= stringifyObject( $args['dimensionFilters'] );
+		}
+
+		$argsHash = hexdec( substr( md5( $seed ), 0, 8 ) );
+
+		if ( ! is_nan( $argsHash ) ) {
+			$faker->seed( $argsHash );
+		}
+
+		$data = array(
+			'pivotHeaders' => array(),
+			'aggregates'   => array(),
+			'rows'         => array(),
+			'metadata'     => array(
+				'currencyCode' => 'USD',
+				'timeZone'     => 'America/Los_Angeles',
+			),
+			'kind'         => 'analyticsData#runPivotReport',
+		);
+
+		$validMetrics = array_filter(
+			$args['metrics'] ?? array(),
+			function( $metric ) {
+				return getMetricType( $metric );
+			}
+		);
+		$streams      = array();
+
+		$dimensions = $args['dimensions'] ? parseDimensionArgs( $args['dimensions'] ) : array();
+
+		foreach ( $args['pivots'] as $pivot ) {
+			$fieldNames = $pivot['fieldNames'];
+			$limit      = $pivot['limit'];
+			$dimension  = $fieldNames[0];
+
+			if ( isset( self::ANALYTICS_4_DIMENSION_GENERATOR_OPTIONS[ $dimension ] ) ) {
+				$streams[] = Observable::create(
+					function ( $observer ) use ( $dimension, $limit ) {
+						for ( $i = 1; $i <= $limit; $i++ ) {
+							$dimensionValue = call_user_func( self::ANALYTICS_4_DIMENSION_GENERATOR_OPTIONS[ $dimension ], $i );
+							if ( $dimensionValue ) {
+								$observer->onNext( $dimensionValue );
+							} else {
+								break;
+							}
+						}
+						$observer->onCompleted();
+					}
+				);
+			} elseif ( $dimension && is_array( self::ANALYTICS_4_DIMENSION_OPTIONS[ $dimension ] ) ) {
+				$streams[] = Observable::fromArray( array_slice( self::ANALYTICS_4_DIMENSION_OPTIONS[ $dimension ], 0, $limit ) );
+			} else {
+				$streams[] = Observable::fromArray( array( null ) );
+			}
+		}
+
+		$allLimitedDimensionValues = array();
+
+		$ops = array(
+			function ( $dimensionValue ) use ( &$allLimitedDimensionValues, $validMetrics ) {
+				$allLimitedDimensionValues  = $dimensionValue;
+				$pivotDimensionCombinations = cartesianProduct( $dimensionValue );
+				return array_map(
+					function ( $pivotDimensionCombination ) use ( $validMetrics ) {
+						return array(
+							'dimensionValues' => array_map(
+								function ( $value ) {
+									return array( 'value' => $value );
+								},
+								$pivotDimensionCombination
+							),
+							'metricValues'    => $this->generateMetricValues( $validMetrics ),
+						);
+					},
+					$pivotDimensionCombinations
+				);
+			},
+			function ( $rows ) use ( $validMetrics, $args ) {
+				return sortPivotRows( $rows, $validMetrics, $args['pivots'] );
+			},
+		);
+
+		Observable::fromArray(
+			array_map(
+				function ( $stream ) {
+					return $stream->toArray();
+				},
+				$streams
+			)
+		)
+		->mergeAll()
+		->toArray()
+		->map( $ops[0] )
+		->map( $ops[1] )
+		->subscribe(
+			function ( $rows ) use ( &$data, $dimensions, $validMetrics, &$allLimitedDimensionValues ) {
+				$data['rows'] = $rows;
+
+				$data['aggregates'] = array_reduce(
+					array( 'RESERVED_MIN', 'RESERVED_MAX', 'RESERVED_TOTAL' ),
+					function ( $acc, $aggregate ) use ( $dimensions, $validMetrics ) {
+						foreach ( $dimensions as $dimension ) {
+							$acc[] = array(
+								'dimensionValues' => array(
+									array( 'value' => $aggregate ),
+									array( 'value' => $dimension ),
+								),
+								'metricValues'    => $this->generateMetricValues( $validMetrics ),
+							);
+						}
+						return $acc;
+					},
+					array()
+				);
+
+				$data['pivotHeaders'] = array_reduce(
+					$allLimitedDimensionValues,
+					function ( $acc, $dimensionValues ) {
+						$acc[] = array(
+							'pivotDimensionHeaders' => array_map(
+								function ( $value ) {
+									return array(
+										'dimensionValues' => array(
+											array( 'value' => $value ),
+										),
+									);
+								},
+								$dimensionValues
+							),
+							'rowCount'              => count( $dimensionValues ),
+						);
+						return $acc;
+					},
+					array()
+				);
+			}
+		);
+
+		return array(
+			'dimensionHeaders' => $args['dimensions']
+			? array_map(
+				function ( $dimension ) {
+					return array( 'name' => $dimension );
+				},
+				$dimensions
+			)
+			: null,
+			'metricHeaders'    => array_map(
+				function ( $metric ) {
+					return array(
+						'name' => $metric['name'] ?? (string) $metric,
+						'type' => getMetricType( $metric ),
+					);
+				},
+				$validMetrics
+			),
+			'data'             => $data,
+		);
+	}
+
 	private function generateMetricValues( $validMetrics ) {
 		$values = array();
 
@@ -426,6 +616,78 @@ function invariant( $condition, $message ) {
 
 function isValidDateString( $date ) {
 	return strtotime( $date ) !== false;
+}
+
+function isValidOrders( $orders ) {
+	if ( ! is_array( $orders ) ) {
+		return false;
+	}
+
+	foreach ( $orders as $order ) {
+		if ( ! is_array( $order ) ) {
+			return false;
+		}
+
+		if (
+			array_key_exists( 'desc', $order ) &&
+			! is_bool( $order['desc'] )
+		) {
+			return false;
+		}
+
+		if ( isset( $order['metric'] ) ) {
+			if (
+				isset( $order['dimension'] ) ||
+				! is_string( $order['metric']['metricName'] )
+			) {
+				return false;
+			}
+		} elseif ( isset( $order['dimension'] ) ) {
+			if ( ! is_string( $order['dimension']['dimensionName'] ) ) {
+				return false;
+			}
+		} else {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+function isValidPivotsObject( $pivots ) {
+	if ( ! is_array( $pivots ) ) {
+		return false;
+	}
+
+	foreach ( $pivots as $pivot ) {
+		if ( ! is_array( $pivot ) ) {
+			return false;
+		}
+
+		if (
+			! array_key_exists( 'fieldNames', $pivot ) ||
+			! is_array( $pivot['fieldNames'] ) ||
+			count( $pivot['fieldNames'] ) === 0
+		) {
+			return false;
+		}
+
+		if (
+			! array_key_exists( 'limit', $pivot ) ||
+			! is_numeric( $pivot['limit'] )
+		) {
+			return false;
+		}
+
+		if (
+			array_key_exists( 'orderby', $pivot ) &&
+			! isValidOrders( $pivot['orderby'] )
+		) {
+			return false;
+		}
+	}
+
+	return true;
 }
 
 function isValidDimensionFilters( $filters ) {
@@ -568,6 +830,38 @@ function sortRows( $rows, $metrics, $dimensions, $orderby ) {
 	return $rows;
 }
 
+function sortPivotRows( $rows, $metrics, $pivots ) {
+	// Extract all dimensions from the pivots orderby values if present.
+	$orderby = array();
+	foreach ( $pivots as $pivot ) {
+		if ( isset( $pivot['orderby'] ) ) {
+			foreach ( $pivot['orderby'] as $orderByItem ) {
+					$orderby[] = $orderByItem;
+			}
+		}
+	}
+
+	if ( empty( $orderby ) ) {
+			return $rows;
+	}
+
+	// For each pivot orderby, sort the rows by the given sorting metric and desc value.
+	foreach ( $orderby as $orderbyItem ) {
+			usort(
+				$rows,
+				function ( $rowA, $rowB ) use ( $metrics, $orderbyItem ) {
+					$metricIndex = array_search( $orderbyItem['metric']['metricName'], array_column( $metrics, 'name' ), true );
+					if ( isset( $orderbyItem['desc'] ) && $orderbyItem['desc'] ) {
+						return $rowB['metricValues'][ $metricIndex ]['value'] - $rowA['metricValues'][ $metricIndex ]['value'];
+					}
+					return $rowA['metricValues'][ $metricIndex ]['value'] - $rowB['metricValues'][ $metricIndex ]['value'];
+				}
+			);
+	}
+
+	return $rows;
+}
+
 function cartesianProduct( $arrays ) {
 	$result = array( array() );
 
@@ -586,6 +880,20 @@ function cartesianProduct( $arrays ) {
 	}
 
 	return $result;
+}
+
+function createPivotDimensionCombinations( $dimensionValues ) {
+	$combinations = array( array() );
+	foreach ( $dimensionValues as $dimensionValue ) {
+			$temp = array();
+		foreach ( $combinations as $combination ) {
+			foreach ( $dimensionValue as $value ) {
+					$temp[] = array_merge( $combination, array( $value ) );
+			}
+		}
+			$combinations = $temp;
+	}
+	return $combinations;
 }
 
 function zip( ...$arrays ) {
