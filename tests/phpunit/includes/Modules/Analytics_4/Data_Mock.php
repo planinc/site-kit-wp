@@ -14,6 +14,9 @@ namespace Google\Site_Kit\Tests\Modules\Analytics_4;
 use DateTime;
 use Exception;
 use Rx\Observable;
+use React\EventLoop\Loop;
+use React\EventLoop\Factory;
+use Rx\Scheduler;
 use Rx\Scheduler\ImmediateScheduler;
 use Rx\Scheduler\EventLoopScheduler;
 use Rx\Observable\EmptyObservable;
@@ -26,9 +29,19 @@ use Faker\Generator as FakerGenerator;
 use Generator;
 use InvalidArgumentException;
 
-use function Rx\zip;
-use function Rx\from;
-use function Rx\merge;
+// use function Rx\zip;
+// use function Rx\from;
+// use function Rx\merge;
+
+$loop = Loop::get();
+// $loop = Factory::create(); // Deprecated. Use Loop::get() instead.
+
+// You only need to set the default scheduler once.
+Scheduler::setDefaultFactory(
+	function() use ( $loop ) {
+		return new Scheduler\EventLoopScheduler( $loop );
+	}
+);
 
 class Data_Mock {
 	public const STRATEGY_CARTESIAN = 'cartesian';
@@ -189,9 +202,9 @@ class Data_Mock {
 					$dateRanges[] = generateDateRange( $compareStartDate, $compareEndDate );
 				}
 				$dateRange = array_unique( array_merge( ...$dateRanges ) );
-				$streams[] = from( $dateRange );
+				$streams[] = Observable::fromArray( $dateRange );
 			} elseif ( $dimension === 'dateRange' ) {
-				$streams[] = from( array( 'date_range_0', 'date_range_1' ) );
+				$streams[] = Observable::fromArray( array( 'date_range_0', 'date_range_1' ) );
 			} elseif ( isset( self::ANALYTICS_4_DIMENSION_GENERATOR_OPTIONS[ $dimension ] ) ) {
 				$streams[] = Observable::create(
 					function ( $observer ) use ( $dimension ) {
@@ -207,9 +220,9 @@ class Data_Mock {
 					}
 				);
 			} elseif ( isset( self::ANALYTICS_4_DIMENSION_OPTIONS[ $dimension ] ) && is_array( self::ANALYTICS_4_DIMENSION_OPTIONS[ $dimension ] ) ) {
-				$streams[] = from( self::ANALYTICS_4_DIMENSION_OPTIONS[ $dimension ] );
+				$streams[] = Observable::fromArray( self::ANALYTICS_4_DIMENSION_OPTIONS[ $dimension ] );
 			} else {
-				$streams[] = from( array( null ) );
+				$streams[] = Observable::fromArray( array( null ) );
 			}
 		}
 
@@ -225,7 +238,7 @@ class Data_Mock {
 							},
 							(array) $dimensionValue
 						),
-						'metricValues'    => generateMetricValues( $validMetrics ),
+						'metricValues'    => $this->generateMetricValues( $validMetrics ),
 					);
 				},
 				'take'    => $rowLimit,
@@ -242,7 +255,9 @@ class Data_Mock {
 			$mergeMapper                  = null;
 
 			if ( $dimensionCombinationStrategy === self::STRATEGY_CARTESIAN ) {
-				$mergeMapper = 'cartesianProduct';
+				$mergeMapper = function( $arrays ) {
+					return cartesianProduct( $arrays );
+				};
 			} elseif ( $dimensionCombinationStrategy === self::STRATEGY_ZIP ) {
 				$mergeMapper = function ( $arrays ) {
 					return zip( ...$arrays );
@@ -251,18 +266,21 @@ class Data_Mock {
 				throw new Exception( "Invalid dimension combination strategy: $dimensionCombinationStrategy" );
 			}
 
-			merge(
-				...array_map(
+			Observable::fromArray(
+			// merge(
+				array_map(
 					function ( $stream ) {
 						return $stream->toArray();
 					},
 					$streams
 				)
 			)
+			->mergeAll()
 			->toArray()
 			->flatMap(
 				function ( $arrays ) use ( $mergeMapper ) {
-					return call_user_func( $mergeMapper, $arrays );
+					$mapped = call_user_func( $mergeMapper, $arrays );
+					return Observable::fromArray( $mapped );
 				}
 			)
 			->map( $ops['map'] )
@@ -418,7 +436,7 @@ class Data_Mock {
 		$values = array();
 
 		foreach ( $validMetrics as $validMetric ) {
-			switch ( $this->getMetricType( $validMetric ) ) {
+			switch ( getMetricType( $validMetric ) ) {
 				case 'TYPE_INTEGER':
 					$values[] = array(
 						'value' => (string) $this->faker->numberBetween( 0, 100 ),
@@ -488,8 +506,19 @@ function stringifyObject( $object ) {
 }
 
 function parseDimensionArgs( $dimensions ) {
-	// Implement your parsing logic
-	return $dimensions;
+	// Ensure $dimensions is always an array.
+	$dimensionsArray = is_array( $dimensions ) ? $dimensions : array( $dimensions );
+
+	if ( count( $dimensionsArray ) && is_object( $dimensionsArray[0] ) ) {
+			return array_map(
+				function( $dimension ) {
+					return $dimension['name'];
+				},
+				$dimensionsArray
+			);
+	}
+
+	return $dimensionsArray;
 }
 
 function getItemKey( $item ) {
@@ -520,12 +549,90 @@ function getMetricType( $metric ) {
 	return Data_Mock::ANALYTICS_4_METRIC_TYPES[ getItemKey( $metric ) ];
 }
 
+function findMetricValue( $row, $metrics, $metricName ) {
+	$index = null;
+	foreach ( $metrics as $i => $metric ) {
+		if ( getItemKey( $metric ) === $metricName ) {
+				$index = $i;
+				break;
+		}
+	}
+	if ( $index === null ) {
+			return null;
+	}
+	return intval( $row['metricValues'][ $index ]['value'] );
+}
+
+function findDimensionValue( $row, $dimensions, $dimensionName ) {
+	$index = null;
+	foreach ( $dimensions as $i => $metric ) {
+		if ( getItemKey( $metric ) === $dimensionName ) {
+				$index = $i;
+				break;
+		}
+	}
+	if ( $index === null ) {
+			return null;
+	}
+	return intval( $row['dimensionValues'][ $index ]['value'] );
+}
+
+function compareRows( $rowA, $rowB, $metrics, $dimensions, $orderby ) {
+	$order = $orderby[0];
+	$valA  = null;
+	$valB  = null;
+
+	if ( isset( $order['metric'] ) ) {
+			$valA = findMetricValue( $rowA, $metrics, $order['metric']['metricName'] );
+			$valB = findMetricValue( $rowB, $metrics, $order['metric']['metricName'] );
+	} elseif ( isset( $order['dimension'] ) ) {
+			$valA = findDimensionValue( $rowA, $dimensions, $order['dimension']['dimensionName'] );
+			$valB = findDimensionValue( $rowB, $dimensions, $order['dimension']['dimensionName'] );
+	}
+
+	if ( $valA === $valB ) {
+		if ( count( $orderby ) > 1 ) {
+				return compareRows( $rowA, $rowB, $metrics, $dimensions, array_slice( $orderby, 1 ) );
+		}
+			return 0;
+	}
+
+	$direction = isset( $order['desc'] ) && $order['desc'] ? -1 : 1;
+	return ( $valA < $valB ? -1 : 1 ) * $direction;
+}
+
 function sortRows( $rows, $metrics, $dimensions, $orderby ) {
-	// Implement your sorting logic
+	usort(
+		$rows,
+		function( $rowA, $rowB ) use ( $metrics, $dimensions, $orderby ) {
+			return compareRows( $rowA, $rowB, $metrics, $dimensions, $orderby );
+		}
+	);
+
 	return $rows;
 }
 
 function cartesianProduct( $arrays ) {
-	// Implement your cartesian product logic
-	return array();
+	$result = array( array() );
+
+	foreach ( $arrays as $array ) {
+			$append = array();
+
+		foreach ( $result as $product ) {
+			foreach ( $array as $item ) {
+					$productCopy   = $product;
+					$productCopy[] = $item;
+					$append[]      = $productCopy;
+			}
+		}
+
+			$result = $append;
+	}
+
+	return $result;
+}
+
+function zip( ...$arrays ) {
+	// The NULL callback allows array_map to act like zip, transposing the array.
+	return array_map( null, ...$arrays );
 }
