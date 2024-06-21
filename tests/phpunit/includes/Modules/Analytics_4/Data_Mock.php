@@ -28,6 +28,7 @@ use Faker\Factory as Faker;
 use Faker\Generator as FakerGenerator;
 use Generator;
 use InvalidArgumentException;
+use PHP_CodeSniffer\Tokenizers\PHP;
 
 // use function Rx\zip;
 // use function Rx\from;
@@ -38,9 +39,12 @@ $loop = Loop::get();
 
 // You only need to set the default scheduler once.
 Scheduler::setDefaultFactory(
-	function() use ( $loop ) {
-		return new Scheduler\EventLoopScheduler( $loop );
+	function() {
+		return new ImmediateScheduler();
 	}
+	// function() use ( $loop ) {
+	// 	return new Scheduler\EventLoopScheduler( $loop );
+	// }
 );
 
 class Data_Mock {
@@ -266,6 +270,9 @@ class Data_Mock {
 				throw new Exception( "Invalid dimension combination strategy: $dimensionCombinationStrategy" );
 			}
 
+			echo 'streams count: ' . count( $streams ) . PHP_EOL;
+			// print_r( $streams );
+
 			Observable::fromArray(
 			// merge(
 				array_map(
@@ -275,8 +282,16 @@ class Data_Mock {
 					$streams
 				)
 			)
+			// Print the array of arrays to the console via a call to map.
 			->mergeAll()
 			->toArray()
+			// ->map(
+			// 	function ( $arrays ) {
+			// 		// echo '>>>>> ' . get_class( $arrays ) . "\n";
+			// 		print_r( $arrays );
+			// 		return $arrays;
+			// 	}
+			// )
 			->flatMap(
 				function ( $arrays ) use ( $mergeMapper ) {
 					$mapped = call_user_func( $mergeMapper, $arrays );
@@ -289,6 +304,8 @@ class Data_Mock {
 			->map( $ops['mapSort'] )
 			->subscribe(
 				function ( $rows ) use ( &$data, $dimensions, $hasDateRange ) {
+					echo 'ROW COUNT ' . count( $rows ) . PHP_EOL;
+					// print_r( $rows );
 					$data['rows']     = $rows;
 					$data['rowCount'] = count( $rows );
 
@@ -364,10 +381,14 @@ class Data_Mock {
 							'metricValues'    => $rows[ count( $rows ) - 1 ]['metricValues'] ?? array(),
 						);
 					}
+
+					// echo 'DATA1: ' . print_r( $data, true ) . PHP_EOL;
 				}
 			);
 
 			// $faker->seed = $originalSeedValue;
+
+			// echo 'DATA2: ' . print_r( $data, true ) . PHP_EOL;
 
 			return array(
 				'dimensionHeaders' => isset( $args['dimensions'] ) ? array_map(
