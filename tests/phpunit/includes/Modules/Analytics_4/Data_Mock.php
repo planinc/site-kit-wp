@@ -193,7 +193,7 @@ class Data_Mock {
 				$streams[] = Observable::create(
 					function ( $observer ) use ( $dimension ) {
 						for ( $i = 1; $i <= 90; $i++ ) {
-							$val = call_user_func( self::ANALYTICS_4_DIMENSION_GENERATOR_OPTIONS[ $dimension ] );
+							$val = call_user_func( self::ANALYTICS_4_DIMENSION_GENERATOR_OPTIONS[ $dimension ], $i );
 							if ( $val ) {
 								$observer->onNext( $val );
 							} else {
