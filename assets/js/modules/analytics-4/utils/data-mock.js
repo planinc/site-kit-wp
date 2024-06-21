@@ -717,22 +717,62 @@ export function provideAnalytics4MockReport( registry, options ) {
 }
 
 /**
- * Creates all combinations of pivot dimension values that we expect in a pivot report response.
+ * Creates all combinations of pivot multi-dimension values that we expect in a pivot report response.
+ * This is different from `cartesianProduct` function in regard that it considers multi-dimension as a single entity
+ * and another dimension as a different one.
+ *
+ * For example consider the pivots with these dimensions
+ * [
+ *     {
+ *         fieldNames: [ 'pagePath', 'pageTitle' ], // having 10 rows
+ *         limit: 15,
+ *      },
+ *      {
+ *          fieldNames: [ 'pagePath', 'pageTitle' ], // having 3 rows
+ *          limit: 3,
+ *      },
+ * ]
+ *
+ * in this case this function will generate 30 (10 x 3) combinations.
  *
  * @since n.e.x.t
  *
  * @param {Array.<string>} dimensionValues An array of valid dimension names.
- * @return {Array.<Array>} An array of all possible combinations of dimension values.
+ * @return {Array.<Array>} Creates necessary combinations of dimension values.
  */
-function createPivotDimensionCombinations( dimensionValues ) {
-	// Find every combination of each array of dimensionValues.
-	return dimensionValues.reduce(
-		( acc, dimensionValue ) =>
-			acc.flatMap( ( combination ) =>
-				dimensionValue.map( ( value ) => [ ...combination, value ] )
-			),
-		[ [] ]
+function createPivotMultiDimensionCombinations( dimensionValues ) {
+	const chunks = [];
+	const checkedIndexes = [];
+
+	dimensionValues.forEach( ( value, key ) => {
+		if ( ! checkedIndexes.includes( key ) ) {
+			const currentLength = value.length;
+			chunks[ key ] = [];
+
+			dimensionValues.forEach( ( innerValue, index ) => {
+				if ( innerValue.length === currentLength ) {
+					chunks[ key ].push( innerValue );
+					checkedIndexes.push( index );
+				}
+			} );
+
+			if ( chunks[ key ].length > 1 ) {
+				chunks[ key ] = zip( ...chunks[ key ] );
+			} else if ( chunks[ key ].length ) {
+				chunks[ key ] = chunks[ key ][ 0 ];
+			}
+		}
+	} );
+
+	dimensionValues = chunks.filter(
+		( chunkVal ) => chunkVal && chunkVal.length
 	);
+
+	const combinations = cartesianProduct(
+		chunks.filter( ( chunkVal ) => chunkVal?.length )
+	);
+
+	return combinations.map( ( combination ) => combination.flat() );
 }
 
 /**
@@ -814,6 +854,9 @@ export function getAnalytics4MockPivotResponse( options ) {
 	// Ensure we don't mutate the passed options to avoid unexpected side effects for the caller.
 	const args = cloneDeep( options );
 
+	const hasMultiDimensions = options.pivots.some(
+		( pivot ) => pivot.fieldNames.length > 1
+	);
 	const originalSeedValue = faker.seedValue;
 	const argsURL = args.url || 'http://example.com';
 
@@ -862,46 +905,57 @@ export function getAnalytics4MockPivotResponse( options ) {
 	args.pivots.forEach( ( { fieldNames, limit } ) => {
 		// We only support one dimension for each pivot in our current pivot report implementation
 		// so we can choose the first fieldNames value as our dimension.
-		const dimension = fieldNames[ 0 ];
 
-		if (
-			dimension &&
-			typeof ANALYTICS_4_DIMENSION_OPTIONS[ dimension ] === 'function'
-		) {
-			// Generates a stream (an array) of dimension values using a function associated with the current dimension.
-			streams.push(
-				new Observable( ( observer ) => {
-					// The limit here is the pivot limit as limits are set within the pivot level, never at the root of the report.
-					for ( let i = 1; i <= limit; i++ ) {
-						const dimensionValue =
-							ANALYTICS_4_DIMENSION_OPTIONS[ dimension ]( i );
-						if ( dimensionValue ) {
-							observer.next( dimensionValue );
-						} else {
-							break;
-						}
-					}
-
-					observer.complete();
-				} )
-			);
-		} else if (
-			dimension &&
-			Array.isArray( ANALYTICS_4_DIMENSION_OPTIONS[ dimension ] )
-		) {
-			// Uses predefined array of dimension values to create a stream (an array) from.
-			streams.push(
-				from(
-					// Slice here applies the limit for the pivot.
-					ANALYTICS_4_DIMENSION_OPTIONS[ dimension ].slice( 0, limit )
+		fieldNames.forEach( ( dimension ) => {
+			// If an array of filter values is provided for the dimension, use that to generate the stream.
+			if (
+				dimension &&
+				args?.dimensionFilters?.[ dimension ]?.some(
+					( dimensionValue ) => typeof dimensionValue === 'string'
 				)
-			);
-		} else {
-			// In case when a dimension is not provided or is not recognized, we use NULL to create a stream (an array) with just one value.
-			streams.push( from( [ null ] ) );
-		}
-	} );
+			) {
+				streams.push( from( args.dimensionFilters[ dimension ] ) );
+			} else if (
+				dimension &&
+				typeof ANALYTICS_4_DIMENSION_OPTIONS[ dimension ] === 'function'
+			) {
+				// Generates a stream (an array) of dimension values using a function associated with the current dimension.
+				streams.push(
+					new Observable( ( observer ) => {
+						// The limit here is the pivot limit as limits are set within the pivot level, never at the root of the report.
+						for ( let i = 1; i <= limit; i++ ) {
+							const dimensionValue =
+								ANALYTICS_4_DIMENSION_OPTIONS[ dimension ]( i );
+							if ( dimensionValue ) {
+								observer.next( dimensionValue );
+							} else {
+								break;
+							}
+						}
 
+						observer.complete();
+					} )
+				);
+			} else if (
+				dimension &&
+				Array.isArray( ANALYTICS_4_DIMENSION_OPTIONS[ dimension ] )
+			) {
+				// Uses predefined array of dimension values to create a stream (an array) from.
+				streams.push(
+					from(
+						// Slice here applies the limit for the pivot.
+						ANALYTICS_4_DIMENSION_OPTIONS[ dimension ].slice(
+							0,
+							limit
+						)
+					)
+				);
+			} else {
+				// In case when a dimension is not provided or is not recognized, we use NULL to create a stream (an array) with just one value.
+				streams.push( from( [ null ] ) );
+			}
+		} );
+	} );
 	// Keep our stream formatted list of dimensions to generate the pivotHeaders at the end.
 	let allLimitedDimensionValues = [];
 
@@ -911,8 +965,9 @@ export function getAnalytics4MockPivotResponse( options ) {
 		map( ( dimensionValue ) => {
 			allLimitedDimensionValues = dimensionValue;
 
-			const pivotDimensionCombinations =
-				createPivotDimensionCombinations( dimensionValue );
+			const pivotDimensionCombinations = hasMultiDimensions
+				? createPivotMultiDimensionCombinations( dimensionValue )
+				: cartesianProduct( dimensionValue );
 
 			return pivotDimensionCombinations.map(
 				( pivotDimensionCombination ) => {
@@ -1014,7 +1069,7 @@ export function getAnalytics4MockPivotResponse( options ) {
 export function provideAnalytics4MockPivotReport( registry, options ) {
 	registry
 		.dispatch( MODULES_ANALYTICS_4 )
-		.receiveGetReport( getAnalytics4MockPivotResponse( options ), {
+		.receiveGetPivotReport( getAnalytics4MockPivotResponse( options ), {
 			options,
 		} );
 }

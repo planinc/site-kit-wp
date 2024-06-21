@@ -131,86 +131,106 @@ function AudienceTilesWidget( { Widget } ) {
 	const topCitiesReportOptions = {
 		startDate,
 		endDate,
-		dimensions: [ 'city' ],
+		dimensions: [ { name: 'city' }, { name: 'audienceResourceName' } ],
+		dimensionFilters: {
+			audienceResourceName: configuredAudiences,
+		},
 		metrics: [ { name: 'totalUsers' } ],
-		orderby: [
+		pivots: [
 			{
-				metric: {
-					metricName: 'totalUsers',
-				},
-				desc: true,
+				fieldNames: [ 'city' ],
+				orderby: [
+					{ metric: { metricName: 'totalUsers' }, desc: true },
+				],
+				limit: 3,
+			},
+			{
+				fieldNames: [ 'audienceResourceName' ],
+				limit: configuredAudiences.length,
 			},
 		],
-		limit: 3,
 	};
 
 	const topCitiesReport = useSelect( ( select ) =>
-		select( MODULES_ANALYTICS_4 ).getReportForAllAudiences(
-			topCitiesReportOptions,
-			configuredAudiences
-		)
+		select( MODULES_ANALYTICS_4 ).getPivotReport( topCitiesReportOptions )
 	);
 	const topCitiesReportLoaded = useSelect( ( select ) =>
-		configuredAudiences.every( ( audienceResourceName ) =>
-			select( MODULES_ANALYTICS_4 ).hasFinishedResolution( 'getReport', [
-				{
-					...topCitiesReportOptions,
-					dimensionFilters: { audienceResourceName },
-				},
-			] )
-		)
+		select( MODULES_ANALYTICS_4 ).hasFinishedResolution( 'getPivotReport', [
+			topCitiesReportOptions,
+		] )
 	);
 
 	const topContentReportOptions = {
 		startDate,
 		endDate,
-		dimensions: [ 'pagePath' ],
+		dimensions: [ { name: 'pagePath' }, { name: 'audienceResourceName' } ],
+		dimensionFilters: {
+			audienceResourceName: configuredAudiences,
+		},
 		metrics: [ { name: 'screenPageViews' } ],
-		orderby: [ { metric: { metricName: 'screenPageViews' }, desc: true } ],
-		limit: 3,
+		pivots: [
+			{
+				fieldNames: [ 'pagePath' ],
+				orderby: [
+					{ metric: { metricName: 'screenPageViews' }, desc: true },
+				],
+				limit: 3,
+			},
+			{
+				fieldNames: [ 'audienceResourceName' ],
+				limit: configuredAudiences.length,
+			},
+		],
 	};
 
 	const topContentReport = useSelect( ( select ) =>
-		select( MODULES_ANALYTICS_4 ).getReportForAllAudiences(
-			topContentReportOptions,
-			configuredAudiences
-		)
+		select( MODULES_ANALYTICS_4 ).getPivotReport( topContentReportOptions )
 	);
 	const topContentReportLoaded = useSelect( ( select ) =>
-		configuredAudiences.every( ( audienceResourceName ) =>
-			select( MODULES_ANALYTICS_4 ).hasFinishedResolution( 'getReport', [
-				{
-					...topContentReportOptions,
-					dimensionFilters: { audienceResourceName },
-				},
-			] )
+		configuredAudiences.every( () =>
+			select( MODULES_ANALYTICS_4 ).hasFinishedResolution(
+				'getPivotReport',
+				[ topContentReportOptions ]
+			)
 		)
 	);
 
 	const topContentPageTitlesReportOptions = {
 		startDate,
 		endDate,
-		dimensions: [ 'pagePath', 'pageTitle' ],
+		dimensions: [
+			{ name: 'pagePath' },
+			{ name: 'pageTitle' },
+			{ name: 'audienceResourceName' },
+		],
+		dimensionFilters: {
+			audienceResourceName: configuredAudiences,
+		},
 		metrics: [ { name: 'screenPageViews' } ],
-		orderby: [ { metric: { metricName: 'screenPageViews' }, desc: true } ],
-		limit: 15,
+		pivots: [
+			{
+				fieldNames: [ 'pagePath', 'pageTitle' ],
+				orderby: [
+					{ metric: { metricName: 'screenPageViews' }, desc: true },
+				],
+				limit: 15,
+			},
+			{
+				fieldNames: [ 'audienceResourceName' ],
+				limit: configuredAudiences.length,
+			},
+		],
 	};
 
 	const topContentPageTitlesReport = useSelect( ( select ) =>
-		select( MODULES_ANALYTICS_4 ).getReportForAllAudiences(
-			topContentPageTitlesReportOptions,
-			configuredAudiences
+		select( MODULES_ANALYTICS_4 ).getPivotReport(
+			topContentPageTitlesReportOptions
 		)
 	);
 	const topContentPageTitlesReportLoaded = useSelect( ( select ) =>
-		configuredAudiences.every( ( audienceResourceName ) =>
-			select( MODULES_ANALYTICS_4 ).hasFinishedResolution( 'getReport', [
-				{
-					...topContentPageTitlesReportOptions,
-					dimensionFilters: { audienceResourceName },
-				},
-			] )
-		)
+		select( MODULES_ANALYTICS_4 ).hasFinishedResolution( 'getPivotReport', [
+			topContentPageTitlesReportOptions,
+		] )
 	);
 
 	const dismissedItems = useSelect( ( select ) =>
@@ -276,6 +296,21 @@ function AudienceTilesWidget( { Widget } ) {
 			} );
 		}
 	} );
+
+	const collectAudienceRows = (
+		audienceResourceName,
+		reportRows,
+		index = 1
+	) => {
+		if ( ! reportRows ) {
+			return [];
+		}
+		return reportRows.filter( ( row ) => {
+			return (
+				audienceResourceName === row?.dimensionValues?.[ index ]?.value
+			);
+		} );
+	};
 
 	const loading =
 		! reportLoaded ||
@@ -388,18 +423,26 @@ function AudienceTilesWidget( { Widget } ) {
 								?.value
 						) || 0;
 
-					const topCities = topCitiesReport?.[ index ];
+					const topCities = collectAudienceRows(
+						audienceResourceName,
+						topCitiesReport?.rows
+					);
 
-					const topContent = topContentReport?.[ index ];
+					const topContent = collectAudienceRows(
+						audienceResourceName,
+						topContentReport?.rows
+					);
 
 					const topContentTitles = {};
 
-					topContentPageTitlesReport?.[ index ]?.rows?.forEach(
-						( row ) => {
-							topContentTitles[ row.dimensionValues[ 0 ].value ] =
-								row.dimensionValues[ 1 ].value;
-						}
-					);
+					collectAudienceRows(
+						audienceResourceName,
+						topContentPageTitlesReport?.rows,
+						2
+					).forEach( ( row ) => {
+						topContentTitles[ row.dimensionValues[ 0 ].value ] =
+							row.dimensionValues[ 1 ].value;
+					} );
 
 					const isPartialData =
 						partialDataStates[ audienceResourceName ];
@@ -442,36 +485,39 @@ function AudienceTilesWidget( { Widget } ) {
 							}
 							topCities={ {
 								dimensionValues: [
-									topCities?.rows?.[ 0 ]
-										?.dimensionValues?.[ 0 ],
-									topCities?.rows?.[ 1 ]
-										?.dimensionValues?.[ 0 ],
-									topCities?.rows?.[ 2 ]
-										?.dimensionValues?.[ 0 ],
+									topCities?.[ 0 ]?.dimensionValues?.[ 0 ]
+										?.value,
+									topCities?.[ 1 ]?.dimensionValues?.[ 0 ]
+										?.value,
+									topCities?.[ 2 ]?.dimensionValues?.[ 0 ]
+										?.value,
 								],
 								metricValues: [
-									topCities?.rows?.[ 0 ]?.metricValues?.[ 0 ],
-									topCities?.rows?.[ 1 ]?.metricValues?.[ 0 ],
-									topCities?.rows?.[ 2 ]?.metricValues?.[ 0 ],
+									topCities?.[ 0 ]?.metricValues?.[ 0 ]
+										?.value,
+									topCities?.[ 1 ]?.metricValues?.[ 0 ]
+										?.value,
+									topCities?.[ 2 ]?.metricValues?.[ 0 ]
+										?.value,
 								],
 								total: visitors,
 							} }
 							topContent={ {
 								dimensionValues: [
-									topContent?.rows?.[ 0 ]
-										?.dimensionValues?.[ 0 ],
-									topContent?.rows?.[ 1 ]
-										?.dimensionValues?.[ 0 ],
-									topContent?.rows?.[ 2 ]
-										?.dimensionValues?.[ 0 ],
+									topContent?.[ 0 ]?.dimensionValues?.[ 0 ]
+										?.value,
+									topContent?.[ 1 ]?.dimensionValues?.[ 0 ]
+										?.value,
+									topContent?.[ 2 ]?.dimensionValues?.[ 0 ]
+										?.value,
 								],
 								metricValues: [
-									topContent?.rows?.[ 0 ]
-										?.metricValues?.[ 0 ],
-									topContent?.rows?.[ 1 ]
-										?.metricValues?.[ 0 ],
-									topContent?.rows?.[ 2 ]
-										?.metricValues?.[ 0 ],
+									topContent?.[ 0 ]?.metricValues?.[ 0 ]
+										?.value,
+									topContent?.[ 1 ]?.metricValues?.[ 0 ]
+										?.value,
+									topContent?.[ 2 ]?.metricValues?.[ 0 ]
+										?.value,
 								],
 							} }
 							topContentTitles={ topContentTitles }
