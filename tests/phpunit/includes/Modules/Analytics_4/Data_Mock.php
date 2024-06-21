@@ -14,37 +14,18 @@ namespace Google\Site_Kit\Tests\Modules\Analytics_4;
 use DateTime;
 use Exception;
 use Rx\Observable;
-use React\EventLoop\Loop;
-use React\EventLoop\Factory;
 use Rx\Scheduler;
 use Rx\Scheduler\ImmediateScheduler;
-use Rx\Scheduler\EventLoopScheduler;
-use Rx\Observable\EmptyObservable;
-use Rx\Observer\CallbackObserver;
-use Rx\Observer\AutoDetachObserver;
-use Rx\Subject\Subject;
-use Rx\Disposable\CallbackDisposable;
 use Faker\Factory as Faker;
 use Faker\Generator as FakerGenerator;
-use Generator;
 use InvalidArgumentException;
 use PHP_CodeSniffer\Tokenizers\PHP;
-
-// use function Rx\zip;
-// use function Rx\from;
-// use function Rx\merge;
-
-$loop = Loop::get();
-// $loop = Factory::create(); // Deprecated. Use Loop::get() instead.
 
 // You only need to set the default scheduler once.
 Scheduler::setDefaultFactory(
 	function() {
 		return new ImmediateScheduler();
 	}
-	// function() use ( $loop ) {
-	// 	return new Scheduler\EventLoopScheduler( $loop );
-	// }
 );
 
 class Data_Mock {
@@ -150,7 +131,6 @@ class Data_Mock {
 
 		$args  = $options;
 		$faker = Faker::create();
-		// $originalSeedValue = $faker->seed;
 
 		$argsURL = $args['url'] ?? 'http://example.com';
 		$seed    = $argsURL;
@@ -386,8 +366,6 @@ class Data_Mock {
 				}
 			);
 
-			// $faker->seed = $originalSeedValue;
-
 			// echo 'DATA2: ' . print_r( $data, true ) . PHP_EOL;
 
 			return array(
@@ -408,49 +386,6 @@ class Data_Mock {
 				),
 				'data'             => $data,
 			);
-	}
-
-	public static function get_mock_response_() {
-		return array(
-			'data' => array(
-				'propertySummaries' => array(
-					array(
-						'property'         => array(
-							'id'               => '12345678',
-							'displayName'      => 'Test Property',
-							'createTime'       => '2021-01-01T00:00:00Z',
-							'updateTime'       => '2021-01-01T00:00:00Z',
-							'parent'           => 'accounts/12345678',
-							'industryCategory' => 'AUTOMOTIVE',
-							'timeZone'         => 'America/Los_Angeles',
-							'currencyCode'     => 'USD',
-							'deleteTime'       => '2021-01-01T00:00:00Z',
-							'displayName'      => 'Test Property',
-							'name'             => 'properties/12345678',
-							'firebaseAppId'    => '1:1234567890:web:1234567890abcdef',
-							'measurementId'    => 'G-12345678',
-							'defaultUri'       => 'https://example.com',
-							'linkedViews'      => array(
-								'properties/12345678/webDataStreams/12345678',
-							),
-						),
-						'displayName'      => 'Test Property',
-						'industryCategory' => 'AUTOMOTIVE',
-						'timeZone'         => 'America/Los_Angeles',
-						'currencyCode'     => 'USD',
-						'deleteTime'       => '2021-01-01T00:00:00Z',
-						'displayName'      => 'Test Property',
-						'name'             => 'properties/12345678',
-						'firebaseAppId'    => '1:1234567890:web:1234567890abcdef',
-						'measurementId'    => 'G-12345678',
-						'defaultUri'       => 'https://example.com',
-						'linkedViews'      => array(
-							'properties/12345678/webDataStreams/12345678',
-						),
-					),
-				),
-			),
-		);
 	}
 
 	private function generateMetricValues( $validMetrics ) {
@@ -482,7 +417,7 @@ class Data_Mock {
 }
 
 
-	// Helper functions
+// Helper functions
 function invariant( $condition, $message ) {
 	if ( ! $condition ) {
 		throw new InvalidArgumentException( $message );
