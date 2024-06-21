@@ -188,6 +188,16 @@ class Data_Mock {
 				$streams[] = Observable::fromArray( $dateRange );
 			} elseif ( $dimension === 'dateRange' ) {
 				$streams[] = Observable::fromArray( array( 'date_range_0', 'date_range_1' ) );
+			} elseif (
+				isset( $dimension ) &&
+				! empty( $dimension ) &&
+				isset( $args['dimensionFilters'][ $dimension ] ) &&
+				is_array( $args['dimensionFilters'][ $dimension ] ) &&
+				count( array_filter( $args['dimensionFilters'][ $dimension ], 'is_string' ) ) > 0
+			) {
+				// If an array of filter values is provided for the dimension, use that to generate the stream.
+				// TODO: Backport to JS mock.
+				$streams[] = Observable::fromArray( $args['dimensionFilters'][ $dimension ] );
 			} elseif ( isset( self::ANALYTICS_4_DIMENSION_GENERATOR_OPTIONS[ $dimension ] ) ) {
 				$streams[] = Observable::create(
 					function ( $observer ) use ( $dimension ) {
@@ -453,7 +463,16 @@ class Data_Mock {
 			$limit      = $pivot['limit'];
 			$dimension  = $fieldNames[0];
 
-			if ( isset( self::ANALYTICS_4_DIMENSION_GENERATOR_OPTIONS[ $dimension ] ) ) {
+			if (
+				isset( $dimension ) &&
+				! empty( $dimension ) &&
+				isset( $args['dimensionFilters'][ $dimension ] ) &&
+				is_array( $args['dimensionFilters'][ $dimension ] ) &&
+				count( array_filter( $args['dimensionFilters'][ $dimension ], 'is_string' ) ) > 0
+			) {
+				// If an array of filter values is provided for the dimension, use that to generate the stream.
+				$streams[] = Observable::fromArray( $args['dimensionFilters'][ $dimension ] );
+			} elseif ( isset( self::ANALYTICS_4_DIMENSION_GENERATOR_OPTIONS[ $dimension ] ) ) {
 				$streams[] = Observable::create(
 					function ( $observer ) use ( $dimension, $limit ) {
 						for ( $i = 1; $i <= $limit; $i++ ) {
