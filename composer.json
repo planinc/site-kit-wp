@@ -20,11 +20,13 @@
     "php": ">=7.4",
     "ext-json": "*",
     "ext-openssl": "*",
+    "fakerphp/faker": "^1.23",
     "google/apiclient": "^2.14.0",
     "google/apiclient-services": "^0.343.0",
     "google/apiclient-services-adsenselinks": "^0.1.0",
     "google/apiclient-services-subscribewithgoogle": "^0.1.0",
     "guzzlehttp/guzzle": "^6.5.8",
+    "reactivex/rxphp": "^2.0",
     "symfony/polyfill-intl-idn": "^1.29.0"
   },
   "replace": {
