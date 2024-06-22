@@ -24,15 +24,13 @@ import { __ } from '@wordpress/i18n';
  * Internal dependencies
  */
 import { Switch } from 'googlesitekit-components';
-import Data from 'googlesitekit-data';
+import { useDispatch, useSelect } from 'googlesitekit-data';
 import { CORE_SITE } from '../../googlesitekit/datastore/site/constants';
 import ErrorText from '../../components/ErrorText';
 import LoadingWrapper from '../LoadingWrapper';
 import ConfirmDisableConversionTrackingDialog from './ConfirmDisableConversionTrackingDialog';
 import { useFeature } from '../../hooks/useFeature';
 import PropTypes from 'prop-types';
-
-const { useDispatch, useSelect } = Data;
 
 export default function ConversionTrackingToggle( { children, loading } ) {
 	const iceEnabled = useFeature( 'conversionInfra' );

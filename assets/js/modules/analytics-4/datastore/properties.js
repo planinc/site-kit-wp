@@ -31,7 +31,11 @@ import { createRegistrySelector } from '@wordpress/data';
  * Internal dependencies
  */
 import API from 'googlesitekit-api';
-import Data from 'googlesitekit-data';
+import {
+	commonActions,
+	combineStores,
+	createRegistryControl,
+} from 'googlesitekit-data';
 import { CORE_USER } from '../../../googlesitekit/datastore/user/constants';
 import { CORE_SITE } from '../../../googlesitekit/datastore/site/constants';
 import { CORE_MODULES } from '../../../googlesitekit/modules/datastore/constants';
@@ -52,7 +56,6 @@ import {
 import { actions as webDataStreamActions } from './webdatastreams';
 import { createValidatedAction } from '../../../googlesitekit/data/utils';
 import { getItem, setItem } from '../../../googlesitekit/api/cache';
-const { commonActions, createRegistryControl } = Data;
 
 const fetchGetPropertyStore = createFetchStore( {
 	baseName: 'getProperty',
@@ -225,7 +228,7 @@ const baseActions = {
 		invariant( accountID, 'accountID is required.' );
 
 		return ( function* () {
-			const { dispatch } = yield Data.commonActions.getRegistry();
+			const { dispatch } = yield commonActions.getRegistry();
 
 			const { response, error } =
 				yield fetchCreatePropertyStore.actions.fetchCreateProperty(
@@ -259,7 +262,7 @@ const baseActions = {
 			);
 		},
 		function* ( propertyID ) {
-			const registry = yield Data.commonActions.getRegistry();
+			const registry = yield commonActions.getRegistry();
 			const {
 				setPropertyCreateTime,
 				setSettings,
@@ -282,7 +285,7 @@ const baseActions = {
 			setWebDataStreamID( '' );
 
 			if ( propertyID ) {
-				const property = yield Data.commonActions.await(
+				const property = yield commonActions.await(
 					registry
 						.__experimentalResolveSelect( MODULES_ANALYTICS_4 )
 						.getProperty( propertyID )
@@ -331,7 +334,7 @@ const baseActions = {
 	 */
 	*findMatchedProperty() {
 		const registry = yield commonActions.getRegistry();
-		const accounts = yield Data.commonActions.await(
+		const accounts = yield commonActions.await(
 			registry
 				.__experimentalResolveSelect( MODULES_ANALYTICS_4 )
 				.getAccountSummaries()
@@ -350,7 +353,7 @@ const baseActions = {
 			[]
 		);
 
-		return yield Data.commonActions.await(
+		return yield commonActions.await(
 			registry
 				.dispatch( MODULES_ANALYTICS_4 )
 				.matchPropertyByURL( propertyIDs, url )
@@ -366,7 +369,7 @@ const baseActions = {
 	 * @return {Object|null} Matched property object on success, otherwise NULL.
 	 */
 	*matchAccountProperty( accountID ) {
-		const registry = yield Data.commonActions.getRegistry();
+		const registry = yield commonActions.getRegistry();
 
 		yield baseActions.waitForPropertySummaries( accountID );
 
@@ -640,7 +643,7 @@ const baseActions = {
 	 */
 	*syncGoogleTagSettings() {
 		const { select, dispatch, __experimentalResolveSelect } =
-			yield Data.commonActions.getRegistry();
+			yield commonActions.getRegistry();
 
 		const hasTagManagerReadScope = select( CORE_USER ).hasScope(
 			TAGMANAGER_READ_SCOPE
@@ -651,7 +654,7 @@ const baseActions = {
 		}
 
 		// Wait for modules to be available before selecting.
-		yield Data.commonActions.await(
+		yield commonActions.await(
 			__experimentalResolveSelect( CORE_MODULES ).getModules()
 		);
 
@@ -662,7 +665,7 @@ const baseActions = {
 		}
 
 		// Wait for module settings to be available before selecting.
-		yield Data.commonActions.await(
+		yield commonActions.await(
 			__experimentalResolveSelect( MODULES_ANALYTICS_4 ).getSettings()
 		);
 
@@ -692,7 +695,7 @@ const baseActions = {
 		const googleTagID = getGoogleTagID();
 
 		if ( !! googleTagID ) {
-			const googleTagContainer = yield Data.commonActions.await(
+			const googleTagContainer = yield commonActions.await(
 				__experimentalResolveSelect(
 					MODULES_ANALYTICS_4
 				).getGoogleTagContainer( measurementID )
@@ -710,7 +713,7 @@ const baseActions = {
 		const googleTagAccountID = getGoogleTagAccountID();
 		const googleTagContainerID = getGoogleTagContainerID();
 
-		const googleTagContainerDestinations = yield Data.commonActions.await(
+		const googleTagContainerDestinations = yield commonActions.await(
 			__experimentalResolveSelect(
 				MODULES_ANALYTICS_4
 			).getGoogleTagContainerDestinations(
@@ -771,7 +774,7 @@ const baseResolvers = {
 			return;
 		}
 
-		const registry = yield Data.commonActions.getRegistry();
+		const registry = yield commonActions.getRegistry();
 		// Only fetch properties if there are none in the store for the given account.
 		const properties = registry
 			.select( MODULES_ANALYTICS_4 )
@@ -783,7 +786,7 @@ const baseResolvers = {
 		}
 	},
 	*getProperty( propertyID ) {
-		const registry = yield Data.commonActions.getRegistry();
+		const registry = yield commonActions.getRegistry();
 		const property = registry
 			.select( MODULES_ANALYTICS_4 )
 			.getProperty( propertyID );
@@ -792,9 +795,9 @@ const baseResolvers = {
 		}
 	},
 	*getPropertyCreateTime() {
-		const registry = yield Data.commonActions.getRegistry();
+		const registry = yield commonActions.getRegistry();
 		// Ensure settings are available to select.
-		yield Data.commonActions.await(
+		yield commonActions.await(
 			registry
 				.__experimentalResolveSelect( MODULES_ANALYTICS_4 )
 				.getSettings()
@@ -812,7 +815,7 @@ const baseResolvers = {
 			return;
 		}
 
-		const cachedPropertyCreateTime = yield Data.commonActions.await(
+		const cachedPropertyCreateTime = yield commonActions.await(
 			getItem(
 				`analytics4-properties-getPropertyCreateTime-${ propertyID }`
 			)
@@ -826,7 +829,7 @@ const baseResolvers = {
 			return;
 		}
 
-		const property = yield Data.commonActions.await(
+		const property = yield commonActions.await(
 			registry
 				.__experimentalResolveSelect( MODULES_ANALYTICS_4 )
 				.getProperty( propertyID )
@@ -837,7 +840,7 @@ const baseResolvers = {
 		}
 
 		// Cache this value for 1 hour (the default cache time).
-		yield Data.commonActions.await(
+		yield commonActions.await(
 			setItem(
 				`analytics4-properties-getPropertyCreateTime-${ propertyID }`,
 				property.createTime
@@ -849,7 +852,7 @@ const baseResolvers = {
 			.setPropertyCreateTime( property.createTime );
 	},
 	*hasMismatchedGoogleTagID() {
-		const registry = yield Data.commonActions.getRegistry();
+		const registry = yield commonActions.getRegistry();
 
 		const hasMismatchedTag = registry
 			.select( MODULES_ANALYTICS_4 )
@@ -983,7 +986,7 @@ const baseSelectors = {
 	} ),
 };
 
-const store = Data.combineStores(
+const store = combineStores(
 	fetchCreatePropertyStore,
 	fetchGetPropertiesStore,
 	fetchGetPropertyStore,
